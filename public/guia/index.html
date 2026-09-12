@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Comentários — Repair OPPO</title>
+<style>
+  :root{
+    --ml-blue-dark:#00234a;
+    --ml-blue:#0057b8;
+    --ml-blue-mid:#0072ce;
+    --ml-cyan:#00b4d8;
+    --ml-bg:#eef3f9;
+    --ml-card:#ffffff;
+    --ml-text:#131b2e;
+    --ml-text-soft:#5b6b82;
+    --ml-border:#d7e2ee;
+    --ml-success:#1a9c5c;
+    --ml-danger:#d1373f;
+    --ml-warning:#b8790a;
+    --shadow: 0 2px 10px rgba(0,35,74,0.08);
+    --shadow-lg: 0 12px 32px rgba(0,35,74,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--ml-bg);
+    color:var(--ml-text);
+  }
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  header{
+    background:linear-gradient(120deg,var(--ml-blue-dark),var(--ml-blue) 60%,var(--ml-blue-mid));
+    color:#fff;
+    padding:18px 24px;
+    display:flex;align-items:center;gap:16px;
+    box-shadow:var(--shadow);
+    position:sticky;top:0;z-index:10;
+  }
+  header h1{
+    font-size:1.15rem;margin:0;font-weight:700;letter-spacing:.2px;flex:1;
+  }
+  header .sub{font-size:.75rem;color:#cfe4ff;font-weight:400;display:block;margin-top:2px;}
+  .status-pill{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,0.12);
+    padding:6px 12px;border-radius:999px;font-size:.78rem;
+    white-space:nowrap;
+  }
+  .status-dot{width:8px;height:8px;border-radius:50%;background:#ffb020;}
+  .status-dot.on{background:#3ddc84;}
+  .status-dot.off{background:#ff5c5c;}
+
+  .icon-btn{
+    background:rgba(255,255,255,0.14);
+    border:none;color:#fff;border-radius:10px;
+    width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:1.1rem;transition:.15s;
+  }
+  .icon-btn:hover{background:rgba(255,255,255,0.26);}
+  .piece-btn{width:auto;padding:0 12px;font-size:.78rem;}
+
+  main{flex:1;padding:22px;max-width:1100px;width:100%;margin:0 auto;}
+
+  .connect-banner{
+    background:#fff;border:1px solid var(--ml-border);border-left:5px solid var(--ml-cyan);
+    border-radius:12px;padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow);
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .connect-banner p{margin:0;font-size:.92rem;color:var(--ml-text-soft);flex:1;min-width:220px;}
+  .btn{
+    border:none;border-radius:10px;padding:10px 18px;font-weight:600;font-size:.88rem;
+    cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-primary{background:var(--ml-blue);color:#fff;}
+  .btn-primary:hover{background:var(--ml-blue-mid);}
+  .btn-outline{background:#fff;color:var(--ml-blue);border:1.5px solid var(--ml-blue);}
+  .btn-outline:hover{background:#eaf2ff;}
+  .btn-danger{background:#fff;color:var(--ml-danger);border:1.5px solid var(--ml-danger);}
+  .btn-danger:hover{background:#fdeceb;}
+  .btn-sm{padding:6px 12px;font-size:.78rem;border-radius:8px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .search-wrap{margin-bottom:20px;}
+  .search-wrap input{
+    width:100%;padding:14px 18px;border-radius:12px;border:1.5px solid var(--ml-border);
+    font-size:1rem;background:#fff;box-shadow:var(--shadow);
+  }
+  .search-wrap input:focus{outline:2px solid var(--ml-cyan);border-color:var(--ml-cyan);}
+
+  .crumb{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:.9rem;color:var(--ml-text-soft);}
+  .crumb button{
+    background:none;border:none;color:var(--ml-blue);font-weight:600;cursor:pointer;font-size:.9rem;
+    padding:6px 0;display:flex;align-items:center;gap:6px;
+  }
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;
+  }
+  .cat-card{
+    background:var(--ml-card);border:1px solid var(--ml-border);border-radius:14px;
+    padding:20px 16px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:6px;text-align:left;
+  }
+  .cat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--ml-cyan);}
+  .cat-card .badge{
+    width:34px;height:34px;border-radius:9px;background:var(--ml-blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;
+    margin-bottom:6px;
+  }
+  .cat-card h3{margin:0;font-size:.95rem;letter-spacing:.2px;}
+  .cat-card .count{font-size:.76rem;color:var(--ml-text-soft);}
+
+  .comment-list{display:flex;flex-direction:column;gap:10px;}
+  .comment-row{
+    background:var(--ml-card);border:1px solid var(--ml-border);border-radius:12px;
+    padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);
+  }
+  .comment-row .txt{flex:1;font-size:.94rem;line-height:1.4;}
+  .copy-btn{
+    background:var(--ml-blue);color:#fff;border:none;border-radius:9px;padding:9px 16px;
+    font-weight:600;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:.15s;
+    min-width:96px;
+  }
+  .copy-btn:hover{background:var(--ml-blue-mid);}
+  .copy-btn.copied{background:var(--ml-success);}
+  .empty-msg{color:var(--ml-text-soft);font-size:.9rem;padding:30px 10px;text-align:center;}
+
+  .search-hit-cat{font-size:.72rem;color:var(--ml-blue);font-weight:700;letter-spacing:.4px;margin-bottom:2px;display:block;}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,17,40,0.55);display:flex;align-items:center;justify-content:center;
+    z-index:100;padding:20px;
+  }
+  .modal{
+    background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:88vh;overflow-y:auto;
+    box-shadow:var(--shadow-lg);
+  }
+  .modal-header{
+    padding:18px 22px;border-bottom:1px solid var(--ml-border);display:flex;align-items:center;justify-content:between;
+    justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0;
+  }
+  .modal-header h2{margin:0;font-size:1.05rem;}
+  .modal-body{padding:20px 22px;}
+  .modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--ml-text-soft);}
+
+  .pin-input{
+    width:100%;padding:14px;border-radius:10px;border:1.5px solid var(--ml-border);
+    font-size:1.4rem;text-align:center;letter-spacing:6px;margin:14px 0;
+  }
+  .field-label{font-size:.78rem;color:var(--ml-text-soft);font-weight:700;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
+
+  .admin-cat-block{border:1px solid var(--ml-border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+  .admin-cat-head{
+    background:#f4f8fc;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  }
+  .admin-cat-head input{
+    flex:1;border:none;background:transparent;font-weight:700;font-size:.92rem;color:var(--ml-text);
+    padding:4px 6px;border-radius:6px;
+  }
+  .admin-cat-head input:focus{outline:1.5px solid var(--ml-cyan);background:#fff;}
+  .admin-cat-body{padding:12px 14px;display:none;flex-direction:column;gap:8px;}
+  .admin-cat-body.open{display:flex;}
+  .admin-comment-row{display:flex;align-items:center;gap:8px;}
+  .admin-comment-row input{
+    flex:1;padding:8px 10px;border:1px solid var(--ml-border);border-radius:8px;font-size:.86rem;
+  }
+  .add-row{display:flex;gap:8px;margin-top:6px;}
+  .add-row input{flex:1;padding:9px 10px;border:1px dashed var(--ml-border);border-radius:8px;font-size:.86rem;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--ml-blue-dark);color:#fff;padding:12px 22px;border-radius:999px;font-size:.88rem;
+    box-shadow:var(--shadow-lg);z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+
+  footer{text-align:center;padding:16px;font-size:.74rem;color:var(--ml-text-soft);}
+  footer button{background:none;border:none;color:var(--ml-text-soft);font-size:.74rem;cursor:pointer;text-decoration:underline;}
+
+  @media (max-width:520px){
+    header{padding:14px 16px;}
+    main{padding:14px;}
+    .status-pill span.label{display:none;}
+  }
+  html[data-theme="dark"]{
+    --ml-blue-dark:#071522;--ml-blue:#2c82ff;--ml-blue-mid:#176fd3;--ml-cyan:#54a8ff;
+    --ml-bg:#07111b;--ml-card:#0d1d2a;--ml-text:#edf5fb;--ml-text-soft:#8ca2b4;
+    --ml-border:#20384c;--ml-success:#2cca74;--ml-danger:#f04b5f;--ml-warning:#e9ad34;
+    --shadow:0 2px 12px rgba(0,0,0,.22);--shadow-lg:0 16px 40px rgba(0,0,0,.38);
+  }
+  html[data-theme="dark"] header{background:#07121d;border-bottom:1px solid var(--ml-border);}
+  html[data-theme="dark"] .connect-banner,
+  html[data-theme="dark"] .search-wrap input,
+  html[data-theme="dark"] .cat-card,
+  html[data-theme="dark"] .comment-row,
+  html[data-theme="dark"] .modal{background:var(--ml-card);color:var(--ml-text);}
+  html[data-theme="dark"] .btn-outline,
+  html[data-theme="dark"] .btn-danger{background:#102333;}
+  html[data-theme="dark"] .admin-cat-head{background:#102333;}
+  html[data-theme="dark"] .admin-cat-head input,
+  html[data-theme="dark"] .admin-comment-row input,
+  html[data-theme="dark"] .add-row input,
+  html[data-theme="dark"] .pin-input{background:#091722;color:var(--ml-text);border-color:var(--ml-border);}
+  html[data-theme="dark"] .modal-header{background:var(--ml-card);border-color:var(--ml-border);}
+  html[data-theme="dark"] code{color:#8fc0ff;}
+</style>
+<script>
+  const requestedTheme = new URLSearchParams(location.search).get('theme');
+  document.documentElement.dataset.theme = requestedTheme === 'light' ? 'light' : 'dark';
+</script>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <h1>Guia de Comentários — Repair OPPO
+        <span class="sub" id="lastUpdated"></span>
+      </h1>
+    </div>
+    <div class="status-pill" id="statusPill">
+      <span class="status-dot off" id="statusDot"></span>
+      <span class="label" id="statusLabel">config não conectada</span>
+    </div>
+    <button class="icon-btn piece-btn" id="pieceBtn" title="Trocar peça" hidden></button>
+    <button class="icon-btn" id="adminBtn" title="Administração" hidden>⚙</button>
+  </header>
+
+  <main id="mainArea"></main>
+
+  <footer>
+    OPPO · A&amp;R · Sistema offline — instale sempre em <strong>C:\Sistema-Falhas-OPPO\</strong> para conexão automática nas próximas vezes.
+  </footer>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* =========================================================
+   ESTADO GLOBAL
+========================================================= */
+let CONFIG = null;          // configuração da peça selecionada
+let FILE_CONFIG = null;     // arquivo completo, incluindo as peças
+let fileHandle = null;      // FileSystemFileHandle conectado
+let selectedPieceId = null;
+let bundledMode = false;
+let currentView = { screen: 'grid', categoryId: null }; // grid | category | search
+let searchTerm = '';
+let adminUnlocked = false;
+
+/* =========================================================
+   DADOS PADRÃO (seed usado apenas se nada puder ser carregado)
+========================================================= */
+const FALLBACK_CONFIG = {
+  versao: 1, atualizadoEm: '2026-07-15', pin: '2026',
+  categorias: [
+    { id:'geral_processo', nome:'GERAL / PROCESSO', comentarios:[
+      {id:'g1', texto:'Não foi possível carregar a pasta de configuração — conecte-a no topo da página.'}
+    ]}
+  ]
+};
+
+/* =========================================================
+   INDEXEDDB — persistência do handle do arquivo
+========================================================= */
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open('repair-oppo-db', 1);
+    req.onupgradeneeded = ()=> req.result.createObjectStore('handles');
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSet(key, val){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readwrite');
+    tx.objectStore('handles').put(val, key);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function idbGet(key){
+  const db = await idbOpen();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('handles','readonly');
+    const req = tx.objectStore('handles').get(key);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+/* =========================================================
+   CONEXÃO COM O ARQUIVO DE CONFIGURAÇÃO
+========================================================= */
+const supportsFS = 'showOpenFilePicker' in window;
+
+async function autoConnect(){
+  try{
+    const [a,b] = await Promise.all([
+      fetch('./2AC349.json').then(r=>r.json()),
+      fetch('./2AC214.json').then(r=>r.json())
+    ]);
+    FILE_CONFIG = {versao:2, atualizadoEm:a.atualizadoEm, pin:'2026', pecas:[
+      {...a,id:'2AC349',nome:'2AC349'},
+      {...b,id:'2AC214',nome:'2AC214'}
+    ]};
+    bundledMode = true;
+    setStatus('on','base integrada');
+    render();
+  }catch(e){
+    setStatus(supportsFS ? 'warn' : 'off', supportsFS ? 'selecione uma peça' : 'base indisponível');
+    setConfigData(FALLBACK_CONFIG);
+    render();
+  }
+}
+
+async function connectConfigFile(){
+  if(!supportsFS){
+    showToast('Seu navegador não suporta esse recurso. Use Chrome ou Edge.');
+    return;
+  }
+  try{
+    let handle;
+    if(window._pendingHandle){
+      const perm = await window._pendingHandle.requestPermission({mode:'readwrite'});
+      if(perm === 'granted'){ handle = window._pendingHandle; }
+    }
+    if(!handle){
+      const [h] = await window.showOpenFilePicker({
+        types:[{description:'Configuração (JSON)', accept:{'application/json':['.json']}}],
+        excludeAcceptAllOption:false
+      });
+      handle = h;
+    }
+    fileHandle = handle;
+    await idbSet('configHandle', handle);
+    await loadConfigFromFile();
+    showToast('Pasta de configuração conectada!');
+  }catch(e){
+    if(e.name !== 'AbortError') showToast('Não foi possível conectar o arquivo.');
+  }
+}
+
+async function loadConfigFromFile(){
+  try{
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    setConfigData(JSON.parse(text));
+    setStatus('on','config conectada');
+    render();
+  }catch(e){
+    showToast('Erro ao ler o arquivo de configuração.');
+    if(!selectedPieceId) setConfigData(FALLBACK_CONFIG);
+    render();
+  }
+}
+
+function setConfigData(data){
+  FILE_CONFIG = data;
+  if(!Array.isArray(FILE_CONFIG.pecas) || FILE_CONFIG.pecas.length === 0){
+    FILE_CONFIG.pecas = [
+      {id:'2AC349', nome:'2AC349', pin:FILE_CONFIG.pin, categorias:structuredClone(FILE_CONFIG.categorias || [])},
+      {id:'2AC214', nome:'2AC214', pin:FILE_CONFIG.pin, categorias:structuredClone(FILE_CONFIG.categorias || [])}
+    ];
+  }
+  selectedPieceId = null;
+  CONFIG = null;
+}
+
+function selectPiece(pieceId){
+  const piece = FILE_CONFIG.pecas.find(item=>item.id === pieceId);
+  if(!piece) return;
+  selectedPieceId = piece.id;
+  CONFIG = piece;
+  currentView = {screen:'grid', categoryId:null};
+  searchTerm = '';
+  render();
+}
+
+function renderPieceSelection(){
+  const main = document.getElementById('mainArea');
+  main.innerHTML = '';
+  document.getElementById('adminBtn').hidden = true;
+  document.getElementById('pieceBtn').hidden = true;
+  const wrap = document.createElement('div');
+  wrap.className = 'connect-banner';
+  wrap.innerHTML = '<div style="width:100%;"><strong>Selecione a peça</strong><p style="margin-top:6px;">Escolha a peça para carregar os comentários correspondentes.</p></div>';
+  [{id:'2AC349', nome:'2AC349'}, {id:'2AC214', nome:'2AC214'}].forEach(piece=>{
+    const button = document.createElement('button');
+    button.className = 'btn btn-primary';
+    button.textContent = piece.nome || piece.id;
+    button.onclick = ()=> bundledMode ? selectPiece(piece.id) : connectPieceFile(piece.id);
+    wrap.appendChild(button);
+  });
+  main.appendChild(wrap);
+}
+
+async function connectPieceFile(pieceId){
+  if(!supportsFS){
+    showToast('Seu navegador não suporta esse recurso. Use Chrome ou Edge.');
+    return;
+  }
+  try{
+    const [handle] = await window.showOpenFilePicker({
+      types:[{description:'Configuração da peça (JSON)', accept:{'application/json':['.json']}}],
+      excludeAcceptAllOption:false
+    });
+    const data = JSON.parse(await (await handle.getFile()).text());
+    if(!Array.isArray(data.categorias)) throw new Error('categorias ausentes');
+    fileHandle = handle;
+    FILE_CONFIG = data;
+    CONFIG = data;
+    selectedPieceId = pieceId;
+    currentView = {screen:'grid', categoryId:null};
+    searchTerm = '';
+    setStatus('on','config conectada');
+    render();
+  }catch(e){
+    if(e.name !== 'AbortError') showToast('Não foi possível carregar o arquivo da peça.');
+  }
+}
+
+async function saveConfigToFile(){
+  CONFIG.atualizadoEm = new Date().toISOString().slice(0,10);
+  if(!fileHandle && !bundledMode){
+    showToast('Conecte a pasta de configuração para salvar as alterações.');
+    return false;
+  }
+  try{
+    const writable = await fileHandle.createWritable();
+    FILE_CONFIG.atualizadoEm = CONFIG.atualizadoEm;
+    await writable.write(JSON.stringify(FILE_CONFIG, null, 2));
+    await writable.close();
+    return true;
+  }catch(e){
+    showToast('Erro ao salvar. Verifique a permissão da pasta.');
+    return false;
+  }
+}
+
+function setStatus(mode, label){
+  const dot = document.getElementById('statusDot');
+  const lbl = document.getElementById('statusLabel');
+  dot.className = 'status-dot ' + (mode === 'on' ? 'on' : mode === 'off' ? 'off' : '');
+  lbl.textContent = label;
+  document.getElementById('statusPill').onclick = (mode !== 'on') ? connectConfigFile : null;
+  document.getElementById('statusPill').style.cursor = (mode !== 'on') ? 'pointer' : 'default';
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+/* =========================================================
+   RENDER — TELA PRINCIPAL
+========================================================= */
+function render(){
+  if(!CONFIG){
+    renderPieceSelection();
+    return;
+  }
+  document.getElementById('lastUpdated').textContent = CONFIG.atualizadoEm ? ('atualizado em ' + CONFIG.atualizadoEm) : '';
+  const pieceBtn = document.getElementById('pieceBtn');
+  pieceBtn.hidden = false;
+  pieceBtn.textContent = CONFIG.nome || CONFIG.id;
+  pieceBtn.onclick = ()=>{ CONFIG = null; selectedPieceId = null; render(); };
+  document.getElementById('adminBtn').hidden = false;
+  const main = document.getElementById('mainArea');
+  main.innerHTML = '';
+
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'search-wrap';
+  searchWrap.innerHTML = `<input type="text" id="searchInput" placeholder="Buscar comentário em todas as categorias..." value="${escapeHtml(searchTerm)}">`;
+  main.appendChild(searchWrap);
+
+  setTimeout(()=>{
+    const inp = document.getElementById('searchInput');
+    inp.addEventListener('input', (e)=>{ searchTerm = e.target.value; renderBody(); });
+    if(document.activeElement !== inp && searchTerm){ /* keep focus flow simple */ }
+  },0);
+
+  const bodyWrap = document.createElement('div');
+  bodyWrap.id = 'bodyWrap';
+  main.appendChild(bodyWrap);
+
+  renderBody();
+}
+
+function renderBody(){
+  const bodyWrap = document.getElementById('bodyWrap');
+  bodyWrap.innerHTML = '';
+
+  if(searchTerm.trim().length > 0){
+    renderSearchResults(bodyWrap);
+    return;
+  }
+
+  if(currentView.screen === 'grid'){
+    renderCategoryGrid(bodyWrap);
+  } else {
+    renderCategoryDetail(bodyWrap, currentView.categoryId);
+  }
+}
+
+function renderCategoryGrid(container){
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  CONFIG.categorias.forEach(cat=>{
+    const card = document.createElement('button');
+    card.className = 'cat-card';
+    card.onclick = ()=>{ currentView = {screen:'category', categoryId:cat.id}; renderBody(); };
+    card.innerHTML = `
+      <div class="badge">${escapeHtml(cat.nome.slice(0,2))}</div>
+      <h3>${escapeHtml(cat.nome)}</h3>
+      <div class="count">${cat.comentarios.length} comentário${cat.comentarios.length===1?'':'s'}</div>
+    `;
+    grid.appendChild(card);
+  });
+  container.appendChild(grid);
+}
+
+function renderCategoryDetail(container, categoryId){
+  const cat = CONFIG.categorias.find(c=>c.id===categoryId);
+  if(!cat){ currentView = {screen:'grid'}; renderCategoryGrid(container); return; }
+
+  const crumb = document.createElement('div');
+  crumb.className = 'crumb';
+  crumb.innerHTML = `<button onclick="goBack()">← Categorias</button><span>/ ${escapeHtml(cat.nome)}</span>`;
+  container.appendChild(crumb);
+
+  const list = document.createElement('div');
+  list.className = 'comment-list';
+  if(cat.comentarios.length === 0){
+    list.innerHTML = `<div class="empty-msg">Nenhum comentário cadastrado nesta categoria ainda.</div>`;
+  } else {
+    cat.comentarios.forEach(c=>{
+      const row = document.createElement('div');
+      row.className = 'comment-row';
+      row.innerHTML = `<div class="txt">${escapeHtml(c.texto)}</div><button class="copy-btn">Copiar</button>`;
+      row.querySelector('.copy-btn').onclick = (e)=> copyText(c.texto, e.target);
+      list.appendChild(row);
+    });
+  }
+  container.appendChild(list);
+}
+
+function renderSearchResults(container){
+  const term = searchTerm.trim().toLowerCase();
+  const crumb = document.createElement('div');
+  crumb.className = 'crumb';
+  crumb.innerHTML = `<span>Resultados para "${escapeHtml(searchTerm)}"</span>`;
+  container.appendChild(crumb);
+
+  const list = document.createElement('div');
+  list.className = 'comment-list';
+  let hits = 0;
+  CONFIG.categorias.forEach(cat=>{
+    cat.comentarios.forEach(c=>{
+      if(c.texto.toLowerCase().includes(term)){
+        hits++;
+        const row = document.createElement('div');
+        row.className = 'comment-row';
+        row.innerHTML = `<div class="txt"><span class="search-hit-cat">${escapeHtml(cat.nome)}</span>${escapeHtml(c.texto)}</div><button class="copy-btn">Copiar</button>`;
+        row.querySelector('.copy-btn').onclick = (e)=> copyText(c.texto, e.target);
+        list.appendChild(row);
+      }
+    });
+  });
+  if(hits===0){ list.innerHTML = `<div class="empty-msg">Nenhum comentário encontrado.</div>`; }
+  container.appendChild(list);
+}
+
+function goBack(){ currentView = {screen:'grid'}; renderBody(); }
+
+async function copyText(text, btnEl){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  }
+  const original = btnEl.textContent;
+  btnEl.textContent = 'Copiado ✓';
+  btnEl.classList.add('copied');
+  setTimeout(()=>{ btnEl.textContent = original; btnEl.classList.remove('copied'); }, 1400);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* =========================================================
+   ADMIN — PIN + CRUD
+========================================================= */
+document.getElementById('adminBtn').addEventListener('click', openPinModal);
+
+function openPinModal(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'pinOverlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header"><h2>Área restrita</h2><button class="modal-close" onclick="closeOverlay('pinOverlay')">✕</button></div>
+      <div class="modal-body">
+        <p style="font-size:.88rem;color:var(--ml-text-soft);margin-top:0;">Acesso para coordenação, supervisores e monitores.</p>
+        <label class="field-label">Digite o PIN</label>
+        <input type="password" inputmode="numeric" class="pin-input" id="pinField" maxlength="8">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="checkPin()">Entrar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('pinField').focus(),50);
+  document.getElementById('pinField').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPin(); });
+}
+
+function checkPin(){
+  const val = document.getElementById('pinField').value;
+  if(val === String(CONFIG.pin)){
+    closeOverlay('pinOverlay');
+    openAdminPanel();
+  } else {
+    showToast('PIN incorreto.');
+  }
+}
+
+function closeOverlay(id){
+  const el = document.getElementById(id);
+  if(el) el.remove();
+}
+
+function openAdminPanel(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'adminOverlay';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Administração de comentários</h2>
+        <button class="modal-close" onclick="closeOverlay('adminOverlay')">✕</button>
+      </div>
+      <div class="modal-body" id="adminBody"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  renderAdminBody();
+}
+
+function renderAdminBody(){
+  const body = document.getElementById('adminBody');
+  if(!body) return;
+  body.innerHTML = '';
+
+  if(!fileHandle){
+    const warn = document.createElement('p');
+    warn.style.cssText = 'background:#fff6e5;border:1px solid #f0c674;padding:10px 14px;border-radius:10px;font-size:.85rem;color:#7a5300;';
+    warn.textContent = 'A pasta de configuração ainda não está conectada — as alterações feitas aqui não serão salvas até você conectá-la (botão no topo da página).';
+    body.appendChild(warn);
+  }
+
+  // Alterar PIN
+  const pinBlock = document.createElement('div');
+  pinBlock.style.cssText = 'display:flex;gap:10px;align-items:end;margin-bottom:20px;';
+  pinBlock.innerHTML = `
+    <div style="flex:1;">
+      <label class="field-label">PIN de acesso atual</label>
+      <input type="text" id="newPinField" value="${escapeHtml(String(CONFIG.pin))}" style="width:100%;padding:9px 10px;border:1px solid var(--ml-border);border-radius:8px;">
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="updatePin()">Salvar PIN</button>
+  `;
+  body.appendChild(pinBlock);
+
+  // Categorias
+  CONFIG.categorias.forEach((cat, catIdx)=>{
+    const block = document.createElement('div');
+    block.className = 'admin-cat-block';
+
+    const head = document.createElement('div');
+    head.className = 'admin-cat-head';
+    head.innerHTML = `
+      <span style="cursor:pointer;" data-toggle="1">▸</span>
+      <input type="text" value="${escapeHtml(cat.nome)}" data-cat="${cat.id}">
+      <span style="font-size:.76rem;color:var(--ml-text-soft);white-space:nowrap;">${cat.comentarios.length} itens</span>
+      <button class="btn btn-danger btn-sm" data-del-cat="${cat.id}">Excluir</button>
+    `;
+    block.appendChild(head);
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'admin-cat-body';
+    bodyDiv.id = 'admincat-' + cat.id;
+
+    cat.comentarios.forEach((c)=>{
+      const row = document.createElement('div');
+      row.className = 'admin-comment-row';
+      row.innerHTML = `
+        <input type="text" value="${escapeHtml(c.texto)}" data-comment-cat="${cat.id}" data-comment-id="${c.id}">
+        <button class="btn btn-danger btn-sm" data-del-comment-cat="${cat.id}" data-del-comment-id="${c.id}">✕</button>
+      `;
+      bodyDiv.appendChild(row);
+    });
+
+    const addRow = document.createElement('div');
+    addRow.className = 'add-row';
+    addRow.innerHTML = `
+      <input type="text" placeholder="Novo comentário..." data-newcomment-cat="${cat.id}">
+      <button class="btn btn-outline btn-sm" data-addcomment-cat="${cat.id}">+ Adicionar</button>
+    `;
+    bodyDiv.appendChild(addRow);
+
+    block.appendChild(bodyDiv);
+    body.appendChild(block);
+
+    // events
+    head.querySelector('span[data-toggle]').onclick = ()=>{
+      bodyDiv.classList.toggle('open');
+      head.querySelector('span[data-toggle]').textContent = bodyDiv.classList.contains('open') ? '▾' : '▸';
+    };
+    head.querySelector('input[data-cat]').addEventListener('change', (e)=>{
+      cat.nome = e.target.value.trim() || cat.nome;
+      persistAndRefresh();
+    });
+    head.querySelector('button[data-del-cat]').onclick = ()=>{
+      if(confirm(`Excluir a categoria "${cat.nome}" e todos os seus comentários?`)){
+        CONFIG.categorias.splice(catIdx,1);
+        persistAndRefresh();
+      }
+    };
+    bodyDiv.querySelectorAll('input[data-comment-id]').forEach(inp=>{
+      inp.addEventListener('change', (e)=>{
+        const cId = e.target.getAttribute('data-comment-id');
+        const comment = cat.comentarios.find(x=>x.id===cId);
+        if(comment){ comment.texto = e.target.value.trim() || comment.texto; persistAndRefresh(); }
+      });
+    });
+    bodyDiv.querySelectorAll('button[data-del-comment-id]').forEach(btn=>{
+      btn.onclick = ()=>{
+        const cId = btn.getAttribute('data-del-comment-id');
+        cat.comentarios = cat.comentarios.filter(x=>x.id!==cId);
+        persistAndRefresh();
+      };
+    });
+    addRow.querySelector('button[data-addcomment-cat]').onclick = ()=>{
+      const inp = addRow.querySelector('input[data-newcomment-cat]');
+      const val = inp.value.trim();
+      if(!val) return;
+      const newId = cat.id + '-' + Date.now();
+      cat.comentarios.push({id:newId, texto:val});
+      inp.value = '';
+      persistAndRefresh(true, cat.id);
+    };
+  });
+
+  // Nova categoria
+  const newCat = document.createElement('div');
+  newCat.className = 'add-row';
+  newCat.style.marginTop = '6px';
+  newCat.innerHTML = `
+    <input type="text" id="newCatName" placeholder="Nome da nova categoria (ex: TOUCHSCREEN)">
+    <button class="btn btn-primary btn-sm" onclick="addCategory()">+ Nova categoria</button>
+  `;
+  body.appendChild(newCat);
+}
+
+function updatePin(){
+  const val = document.getElementById('newPinField').value.trim();
+  if(!val){ showToast('Informe um PIN válido.'); return; }
+  CONFIG.pin = val;
+  persistAndRefresh();
+  showToast('PIN atualizado.');
+}
+
+function addCategory(){
+  const inp = document.getElementById('newCatName');
+  const nome = inp.value.trim();
+  if(!nome) return;
+  const id = 'cat-' + Date.now();
+  CONFIG.categorias.push({id, nome: nome.toUpperCase(), comentarios:[]});
+  inp.value = '';
+  persistAndRefresh();
+}
+
+async function persistAndRefresh(keepOpen, openCatId){
+  const ok = await saveConfigToFile();
+  if(ok) showToast('Alterações salvas.');
+  renderAdminBody();
+  if(openCatId){
+    const el = document.getElementById('admincat-' + openCatId);
+    if(el) el.classList.add('open');
+  }
+  renderBody();
+}
+
+/* =========================================================
+   INÍCIO
+========================================================= */
+setConfigData(FALLBACK_CONFIG);
+autoConnect();
+</script>
+</body>
+</html>

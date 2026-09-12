@@ -1,0 +1,20 @@
+{
+    "versao":  2,
+    "atualizadoEm":  "2026-09-06",
+    "pin":  "2026",
+    "pecas":  [
+                  {
+                      "id":  "2AC349",
+                      "nome":  "2AC349",
+                      "arquivo":  "2AC349.json"
+                  },
+                  {
+                      "id":  "2AC214",
+                      "nome":  "2AC214",
+                      "arquivo":  "2AC214.json"
+                  }
+              ],
+    "categorias":  [
+
+                   ]
+}
