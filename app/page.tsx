@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
@@ -8,6 +9,7 @@ import {
   CircleHelp,
   Hash,
   Image as ImageIcon,
+  LogOut,
   Menu,
   MessageSquare,
   MoreHorizontal,
@@ -16,6 +18,7 @@ import {
   Search,
   Send,
   ShieldCheck,
+  User,
   Users,
   Wrench,
   X,
@@ -47,7 +50,7 @@ type Msg = {
   likes?: number;
 };
 
-const channels: Record<Channel, string> = {
+const baseChannels: Record<string, string> = {
   geral: "Alinhamentos da equipe técnica",
   hardware: "Diagnósticos, medições e reparos em placa",
   software: "BIOS, sistema, drivers e ferramentas",
@@ -55,7 +58,19 @@ const channels: Record<Channel, string> = {
   duvidas: "Ajuda rápida entre técnicos",
   urgentes: "Falhas bloqueando a produção",
 };
+
+const baseTeamMembers = [
+  { id: 1, initials: "CL", name: "Carlos Lima" },
+  { id: 2, initials: "MT", name: "Marcos Tech" },
+  { id: 3, initials: "RC", name: "Rafael Costa" },
+  { id: 4, initials: "JS", name: "Juliana Souza" },
+];
+
 const appName = "TechChat";
+const ADMIN_EMAIL = "admin@techchat.local";
+const ADMIN_PASSWORD = "admin123";
+const BYPASS_ADMIN_EMAIL = "sharyn";
+const BYPASS_ADMIN_PASSWORD = "sharyn";
 const seed: Record<Channel, Msg[]> = {
   hardware: [
     {
@@ -149,7 +164,33 @@ const seed: Record<Channel, Msg[]> = {
     },
   ],
 };
-const notices = [
+type Notice = {
+  id: number;
+  type: string;
+  tone: "red" | "amber" | "blue" | "violet";
+  title: string;
+  body: string;
+  author: string;
+  date: string;
+  read: number;
+  total: number;
+  pinned?: boolean;
+};
+
+type AdminChannel = {
+  id: number;
+  name: string;
+  description: string;
+  kind: "technical" | "info";
+};
+
+type TeamMember = {
+  id: number;
+  initials: string;
+  name: string;
+};
+
+const seedNotices: Notice[] = [
   {
     id: 1,
     type: "URGENTE",
@@ -199,33 +240,243 @@ const notices = [
 ];
 
 export default function Home() {
-  const [view, setView] = useState<View>("board"),
-    [channel, setChannel] = useState<Channel>("hardware"),
-    [messages, setMessages] = useState(seed),
-    [draft, setDraft] = useState(""),
-    [query, setQuery] = useState(""),
-    [filter, setFilter] = useState("todos"),
-    [read, setRead] = useState<number[]>([2]),
-    [drawer, setDrawer] = useState(false),
-    [help, setHelp] = useState(false),
-    [newNotice, setNewNotice] = useState(false),
-    [attachment, setAttachment] = useState<string | null>(null),
-    [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [view, setView] = useState<View>("board");
+  const [channel, setChannel] = useState<string>("hardware");
+  const [messages, setMessages] = useState<Record<string, Msg[]>>(seed);
+  const [draft, setDraft] = useState("");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("todos");
+  const [read, setRead] = useState<number[]>([2]);
+  const [drawer, setDrawer] = useState(false);
+  const [help, setHelp] = useState(false);
+  const [newNotice, setNewNotice] = useState(false);
+  const [attachment, setAttachment] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [entryChecked, setEntryChecked] = useState(false);
+  const [entrySession, setEntrySession] = useState(false);
+  const [entryLoading, setEntryLoading] = useState(false);
+  const [entryError, setEntryError] = useState("");
+  const [googleEmail, setGoogleEmail] = useState("");
+  const [entryForm, setEntryForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminModal, setAdminModal] = useState(false);
+  const [adminForm, setAdminForm] = useState({ email: "", password: "" });
+  const [adminError, setAdminError] = useState("");
+  const [noticeList, setNoticeList] = useState<Notice[]>(seedNotices);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(baseTeamMembers);
+  const [adminChannels, setAdminChannels] = useState<AdminChannel[]>([]);
+  const [newMember, setNewMember] = useState({ initials: "", name: "" });
+  const [newChannel, setNewChannel] = useState({
+    name: "",
+    description: "",
+    kind: "technical" as "technical" | "info",
+  });
+  const router = useRouter();
+  const [noticeDraft, setNoticeDraft] = useState({
+    category: "Procedimento",
+    title: "",
+    body: "",
+  });
   const file = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    const saved = localStorage.getItem("techchat-theme");
-    if (saved === "light") setTheme("light");
+    if (typeof window === "undefined") return;
+
+    const savedTheme = window.localStorage.getItem("techchat-theme");
+    if (savedTheme === "light") setTheme("light");
+    setEntrySession(
+      window.localStorage.getItem("techchat-session-v2") === "active",
+    );
+    setEntryChecked(true);
+
+    const savedMessages = window.localStorage.getItem("techchat-messages");
+    const savedNotices = window.localStorage.getItem("techchat-notices");
+    const savedRead = window.localStorage.getItem("techchat-read");
+    const savedAdminChannels = window.localStorage.getItem(
+      "techchat-admin-channels",
+    );
+
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages) as Partial<
+          Record<Channel, Msg[]>
+        >;
+        setMessages({ ...seed, ...parsed });
+      } catch {
+        setMessages(seed);
+      }
+    }
+
+    if (savedNotices) {
+      try {
+        setNoticeList(JSON.parse(savedNotices) as Notice[]);
+      } catch {
+        setNoticeList(seedNotices);
+      }
+    }
+
+    if (savedRead) {
+      try {
+        setRead(JSON.parse(savedRead) as number[]);
+      } catch {
+        setRead([2]);
+      }
+    }
+
+    if (savedAdminChannels) {
+      try {
+        setAdminChannels(JSON.parse(savedAdminChannels) as AdminChannel[]);
+      } catch {
+        setAdminChannels([]);
+      }
+    }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("techchat-messages", JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("techchat-notices", JSON.stringify(noticeList));
+  }, [noticeList]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("techchat-read", JSON.stringify(read));
+  }, [read]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(
+      "techchat-admin-channels",
+      JSON.stringify(adminChannels),
+    );
+  }, [adminChannels]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest(".profile")) {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   function toggleTheme() {
     setTheme((t) => {
       const next = t === "dark" ? "light" : "dark";
-      localStorage.setItem("techchat-theme", next);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("techchat-theme", next);
+      }
       return next;
     });
   }
+
+  function enterTechChat(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const email = entryForm.email.trim();
+    const password = entryForm.password.trim();
+
+    if (!email || !password) {
+      setEntryError("Preencha email e senha para entrar.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setEntryError("Digite um email válido.");
+      return;
+    }
+
+    setEntryError("");
+    setEntryLoading(true);
+    window.setTimeout(() => {
+      window.localStorage.setItem("techchat-session-v2", "active");
+      setEntryLoading(false);
+      setEntrySession(true);
+    }, 850);
+  }
+
+  function enterWithGoogle(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const email = googleEmail.trim().toLowerCase();
+
+    if (!email.endsWith("@gmail.com") && !email.endsWith("@googlemail.com")) {
+      setEntryError("Use um email do Google (@gmail.com).");
+      return;
+    }
+
+    setEntryError("");
+    setEntryLoading(true);
+    window.setTimeout(() => {
+      window.localStorage.setItem("techchat-session-v2", "active");
+      setEntryLoading(false);
+      setEntrySession(true);
+    }, 850);
+  }
+
+  function leaveTechChat() {
+    window.localStorage.removeItem("techchat-session-v2");
+    setEntrySession(false);
+    setEntryChecked(true);
+    setIsAdmin(false);
+    setAdminModal(false);
+    setProfileOpen(false);
+  }
+
+  const unreadCount = useMemo(
+    () => noticeList.filter((n) => !read.includes(n.id)).length,
+    [noticeList, read],
+  );
+
+  const channels = useMemo(
+    () => ({
+      ...baseChannels,
+      ...Object.fromEntries(
+        adminChannels.map((entry) => [
+          entry.name.trim(),
+          entry.description.trim(),
+        ]),
+      ),
+    }),
+    [adminChannels],
+  );
+
+  const technicalChannels = useMemo(
+    () =>
+      Object.fromEntries(
+        adminChannels
+          .filter((entry) => entry.kind === "technical")
+          .map((entry) => [entry.name.trim(), entry.description.trim()]),
+      ),
+    [adminChannels],
+  );
+
+  const infoItems = useMemo(
+    () => [
+      { id: "notices", label: "Comunicados" },
+      { id: "guide", label: "Guia OPPO" },
+      ...adminChannels
+        .filter((entry) => entry.kind === "info")
+        .map((entry) => ({ id: entry.name, label: entry.name })),
+    ],
+    [adminChannels],
+  );
+
   const shown = useMemo(
     () =>
-      messages[channel].filter((m) =>
+      (messages[channel] ?? []).filter((m) =>
         (m.name + " " + m.text + " " + (m.details || []).join(" "))
           .toLowerCase()
           .includes(query.toLowerCase()),
@@ -239,6 +490,11 @@ export default function Home() {
   }
   function send() {
     if (!draft.trim() && !attachment) return;
+    const time = new Date().toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     setMessages((p) => ({
       ...p,
       [channel]: [
@@ -246,11 +502,8 @@ export default function Home() {
         {
           id: Date.now(),
           name: "Abraão Ulhoa",
-          initials: "JS",
-          time: new Date().toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          initials: "AU",
+          time,
           role: "Técnico",
           text: draft.trim() || "Imagem do reparo",
           image: attachment || undefined,
@@ -260,8 +513,250 @@ export default function Home() {
     setDraft("");
     setAttachment(null);
   }
+
+  function handleLike(id: number) {
+    setMessages((p) => ({
+      ...p,
+      [channel]: p[channel].map((m) =>
+        m.id === id ? { ...m, likes: (m.likes ?? 0) + 1 } : m,
+      ),
+    }));
+  }
+
+  function publishNotice(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!noticeDraft.title.trim() || !noticeDraft.body.trim()) return;
+
+    const nextNotice: Notice = {
+      id: Date.now(),
+      type: noticeDraft.category.toUpperCase(),
+      tone:
+        noticeDraft.category === "Urgente"
+          ? "red"
+          : noticeDraft.category === "Estoque"
+            ? "amber"
+            : noticeDraft.category === "Técnico"
+              ? "violet"
+              : "blue",
+      title: noticeDraft.title.trim(),
+      body: noticeDraft.body.trim(),
+      author: "Abraão Ulhoa",
+      date: "Agora",
+      read: 0,
+      total: 15,
+      pinned: noticeDraft.category === "Urgente",
+    };
+
+    setNoticeList((p) => [nextNotice, ...p]);
+    setNewNotice(false);
+    setNoticeDraft({ category: "Procedimento", title: "", body: "" });
+  }
+
+  function addAdminChannel() {
+    const name = newChannel.name.trim();
+    const description = newChannel.description.trim();
+    if (!name || !description) return;
+
+    const id = Date.now();
+    setAdminChannels((prev) => [
+      ...prev,
+      { id, name, description, kind: newChannel.kind },
+    ]);
+    setNewChannel({ name: "", description: "", kind: "technical" });
+
+    if (newChannel.kind === "technical") {
+      setMessages((prev) => ({ ...prev, [name]: prev[name] ?? [] }));
+    }
+  }
+
+  function removeAdminChannel(id: number) {
+    const channelToRemove = adminChannels.find((entry) => entry.id === id);
+    if (!channelToRemove) return;
+
+    setAdminChannels((prev) => prev.filter((entry) => entry.id !== id));
+    setMessages((prev) => {
+      const next = { ...prev };
+      delete next[channelToRemove.name];
+      return next;
+    });
+
+    if (channel === channelToRemove.name) {
+      setChannel("hardware");
+      setView("board");
+    }
+  }
+
+  function addCollaborator() {
+    const initials = newMember.initials.trim().slice(0, 2).toUpperCase();
+    const name = newMember.name.trim();
+    if (!initials || !name) return;
+
+    setTeamMembers((prev) => [...prev, { id: Date.now(), initials, name }]);
+    setNewMember({ initials: "", name: "" });
+  }
+
+  function removeCollaborator(id: number) {
+    setTeamMembers((prev) => prev.filter((member) => member.id !== id));
+  }
+
+  function openAdminModal() {
+    setProfileOpen(false);
+    setAdminError("");
+    setAdminForm({ email: "", password: "" });
+    setAdminModal(true);
+  }
+
+  function submitAdmin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const normalizedEmail = adminForm.email.trim().toLowerCase();
+    const normalizedPassword = adminForm.password.trim();
+    const validCredentials =
+      (normalizedEmail === ADMIN_EMAIL &&
+        normalizedPassword === ADMIN_PASSWORD) ||
+      (normalizedEmail === BYPASS_ADMIN_EMAIL &&
+        normalizedPassword === BYPASS_ADMIN_PASSWORD);
+
+    if (!validCredentials) {
+      setAdminError("Email ou senha de administrador inválidos.");
+      return;
+    }
+
+    setIsAdmin(true);
+    setAdminError("");
+    setAdminModal(false);
+    setAdminForm({ email: "", password: "" });
+  }
+
+  if (!entryChecked) {
+    return <main className="entry-page" aria-busy="true" />;
+  }
+
+  if (entryLoading) {
+    return (
+      <main className="entry-page loading-page" aria-busy="true">
+        <section className="loading-card">
+          <div className="loading-logo">
+            <MessageSquare />
+          </div>
+          <strong>TechChat</strong>
+          <p>Preparando seu ambiente técnico...</p>
+          <span className="loading-spinner" aria-label="Carregando" />
+        </section>
+      </main>
+    );
+  }
+
+  if (!entrySession) {
+    return (
+      <main className="entry-page">
+        {entryError && (
+          <ErrorToast message={entryError} onClose={() => setEntryError("")} />
+        )}
+        <section className="entry-card">
+          <div className="entry-identity">
+            <div className="entry-avatar">
+              <MessageSquare />
+            </div>
+            <strong>TechChat</strong>
+          </div>
+          <p className="entry-kicker">COMUNICAÇÃO TÉCNICA</p>
+          <h1>Bem-vindo de volta</h1>
+          <p className="entry-description">
+            Entre no seu ambiente de trabalho.
+          </p>
+          <form className="entry-form" onSubmit={enterTechChat}>
+            <label>
+              <span className="entry-field">
+                <User />
+                <input
+                  type="email"
+                  value={entryForm.email}
+                  onChange={(event) => {
+                    setEntryForm((prev) => ({
+                      ...prev,
+                      email: event.target.value,
+                    }));
+                    setEntryError("");
+                  }}
+                  placeholder="Email corporativo"
+                  autoComplete="email"
+                />
+              </span>
+            </label>
+            <label>
+              <span className="entry-field">
+                <ShieldCheck />
+                <input
+                  type="password"
+                  value={entryForm.password}
+                  onChange={(event) => {
+                    setEntryForm((prev) => ({
+                      ...prev,
+                      password: event.target.value,
+                    }));
+                    setEntryError("");
+                  }}
+                  placeholder="Senha"
+                  autoComplete="current-password"
+                />
+              </span>
+            </label>
+            <div className="entry-options">
+              <label className="remember-entry">
+                <input type="checkbox" defaultChecked />
+                <span>Lembrar de mim</span>
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setEntryError(
+                    "A recuperação de senha deve ser feita com a administração.",
+                  )
+                }
+              >
+                Esqueci a senha
+              </button>
+            </div>
+            <button className="primary entry-submit" type="submit">
+              Entrar
+            </button>
+          </form>
+          <div className="entry-divider">
+            <span>ou</span>
+          </div>
+          <form className="google-entry" onSubmit={enterWithGoogle}>
+            <label>
+              <span className="entry-field">
+                <span className="google-mark">G</span>
+                <input
+                  type="email"
+                  value={googleEmail}
+                  onChange={(event) => {
+                    setGoogleEmail(event.target.value);
+                    setEntryError("");
+                  }}
+                  placeholder="Email do Google"
+                  autoComplete="email"
+                />
+              </span>
+            </label>
+            <button className="google-submit" type="submit">
+              Continuar com Google
+            </button>
+          </form>
+          <small className="entry-footer">Acesso interno protegido</small>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="shell" data-theme={theme}>
+      {adminError && (
+        <ErrorToast message={adminError} onClose={() => setAdminError("")} />
+      )}
       <aside className={"side " + (drawer ? "open" : "")}>
         <div className="brand">
           <i>
@@ -272,7 +767,18 @@ export default function Home() {
             <X />
           </button>
         </div>
-        <div className="profile">
+        <div
+          className={"profile " + (profileOpen ? "open" : "")}
+          onClick={() => setProfileOpen((open) => !open)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              setProfileOpen((open) => !open);
+            }
+          }}
+        >
           <span className="avatar blue">AU</span>
           <div>
             <b>Abraão Ulhoa</b>
@@ -282,56 +788,196 @@ export default function Home() {
             </small>
           </div>
           <ChevronDown />
+          {profileOpen && (
+            <div
+              className="profile-menu"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileOpen(false);
+                  router.push("/perfil");
+                }}
+              >
+                <User />
+                Perfil
+              </button>
+              <button type="button" onClick={openAdminModal}>
+                <ShieldCheck />
+                {isAdmin ? "Administrador ativo" : "Modo Administrador"}
+              </button>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  leaveTechChat();
+                }}
+              >
+                <LogOut />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
         <label className="navlabel">Canais técnicos</label>
-        {(Object.keys(channels) as Channel[]).map((c) => (
+        {Object.entries({ ...baseChannels, ...technicalChannels }).map(
+          ([c]) => (
+            <button
+              className={
+                "nav " +
+                (view === "board" && channel === c ? "active " : "") +
+                (c === "urgentes" ? "danger" : "")
+              }
+              onClick={() => {
+                setChannel(c);
+                go("board");
+              }}
+              key={c}
+            >
+              <Hash />
+              <span>{c === "duvidas" ? "dúvidas" : c}</span>
+              {c === "urgentes" && <b>1</b>}
+            </button>
+          ),
+        )}
+        <label className="navlabel separate">Informação</label>
+        {infoItems.map((item) => (
           <button
-            className={
-              "nav " +
-              (view === "board" && channel === c ? "active " : "") +
-              (c === "urgentes" ? "danger" : "")
-            }
+            key={item.id}
+            className={"nav " + (view === "notices" ? "active" : "")}
             onClick={() => {
-              setChannel(c);
-              go("board");
+              if (item.id === "guide") {
+                go("guide");
+                return;
+              }
+              go("notices");
             }}
-            key={c}
           >
-            <Hash />
-            <span>{c === "duvidas" ? "dúvidas" : c}</span>
-            {c === "urgentes" && <b>1</b>}
+            {item.id === "guide" ? <BookOpen /> : <Megaphone />}
+            <span>{item.label}</span>
+            {item.id === "notices" && <b>{unreadCount}</b>}
           </button>
         ))}
-        <label className="navlabel separate">Informação</label>
-        <button
-          className={"nav " + (view === "notices" ? "active" : "")}
-          onClick={() => go("notices")}
-        >
-          <Megaphone />
-          <span>Comunicados</span>
-          <b>{notices.length - read.length}</b>
-        </button>
-        <button
-          className={"nav " + (view === "guide" ? "active" : "")}
-          onClick={() => go("guide")}
-        >
-          <BookOpen />
-          <span>Guia OPPO</span>
-        </button>
+        {isAdmin && (
+          <div className="admin-panel">
+            <h3>Administração</h3>
+            <div className="admin-section">
+              <label>
+                Nome do canal
+                <input
+                  value={newChannel.name}
+                  onChange={(e) =>
+                    setNewChannel((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Ex.: redes"
+                />
+              </label>
+              <label>
+                Descrição
+                <input
+                  value={newChannel.description}
+                  onChange={(e) =>
+                    setNewChannel((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Descreva o canal"
+                />
+              </label>
+              <select
+                value={newChannel.kind}
+                onChange={(e) =>
+                  setNewChannel((prev) => ({
+                    ...prev,
+                    kind: e.target.value as "technical" | "info",
+                  }))
+                }
+              >
+                <option value="technical">Canal técnico</option>
+                <option value="info">Canal de informação</option>
+              </select>
+              <button
+                type="button"
+                className="primary small"
+                onClick={addAdminChannel}
+              >
+                Adicionar
+              </button>
+            </div>
+            {adminChannels.length > 0 && (
+              <div className="admin-list">
+                {adminChannels.map((item) => (
+                  <div key={item.id} className="admin-item">
+                    <span>
+                      {item.name} ·{" "}
+                      {item.kind === "technical" ? "técnico" : "info"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAdminChannel(item.id)}
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="admin-section">
+              <label>
+                Nome do colaborador
+                <input
+                  value={newMember.name}
+                  onChange={(e) =>
+                    setNewMember((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Nome completo"
+                />
+              </label>
+              <label>
+                Iniciais
+                <input
+                  value={newMember.initials}
+                  maxLength={2}
+                  onChange={(e) =>
+                    setNewMember((prev) => ({
+                      ...prev,
+                      initials: e.target.value,
+                    }))
+                  }
+                  placeholder="AB"
+                />
+              </label>
+              <button
+                type="button"
+                className="primary small"
+                onClick={addCollaborator}
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+        )}
         <div className="team">
           <label className="navlabel">
-            Equipe online <b>4</b>
+            Equipe online <b>{teamMembers.length}</b>
           </label>
-          {[
-            ["CL", "Carlos Lima"],
-            ["MT", "Marcos Tech"],
-            ["RC", "Rafael Costa"],
-            ["JS", "Juliana Souza"],
-          ].map((p, i) => (
-            <div className="person" key={p[1]}>
-              <span className={"avatar a" + i}>{p[0]}</span>
-              <span>{p[1]}</span>
-              <i />
+          {teamMembers.map((person, i) => (
+            <div className="person" key={person.id}>
+              <span className={"avatar a" + (i % 4)}>{person.initials}</span>
+              <span>{person.name}</span>
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="remove-member"
+                  onClick={() => removeCollaborator(person.id)}
+                  aria-label={`Excluir ${person.name}`}
+                >
+                  <X />
+                </button>
+              )}
+              {!isAdmin && <i />}
             </div>
           ))}
         </div>
@@ -438,7 +1084,10 @@ export default function Home() {
                           {m.role} · {m.time}
                         </small>
                         {m.tag && <em className={m.tone}>{m.tag}</em>}
-                        <button>
+                        <button
+                          type="button"
+                          aria-label="Mais ações do comentário"
+                        >
                           <MoreHorizontal />
                         </button>
                       </div>
@@ -454,8 +1103,14 @@ export default function Home() {
                         </div>
                       )}
                       {m.image && <img src={m.image} alt="Imagem do reparo" />}
-                      {m.likes && (
-                        <button className="like">👍 {m.likes}</button>
+                      {typeof m.likes === "number" && (
+                        <button
+                          type="button"
+                          className="like"
+                          onClick={() => handleLike(m.id)}
+                        >
+                          👍 {m.likes}
+                        </button>
                       )}
                     </div>
                   </article>
@@ -543,9 +1198,7 @@ export default function Home() {
                     onClick={() => setFilter(id)}
                   >
                     {t}
-                    {id === "nao" && (
-                      <span>{notices.length - read.length}</span>
-                    )}
+                    {id === "nao" && <span>{unreadCount}</span>}
                   </button>
                 ))}
               </div>
@@ -555,7 +1208,7 @@ export default function Home() {
               </button>
             </div>
             <div className="noticegrid">
-              {notices
+              {noticeList
                 .filter(
                   (n) =>
                     (filter === "todos" ||
@@ -625,6 +1278,47 @@ export default function Home() {
           </div>
         )}
       </section>
+      {adminModal && (
+        <Modal close={() => setAdminModal(false)}>
+          <span className="modalicon">
+            <ShieldCheck />
+          </span>
+          <h2>Modo administrador</h2>
+          <p>Informe as credenciais para acessar as funções de gestão.</p>
+          <form onSubmit={submitAdmin}>
+            <label>
+              Email do administrador
+              <input
+                type="email"
+                required
+                value={adminForm.email}
+                onChange={(e) =>
+                  setAdminForm((prev) => ({ ...prev, email: e.target.value }))
+                }
+                placeholder="admin@techchat.local"
+              />
+            </label>
+            <label>
+              Senha
+              <input
+                type="password"
+                required
+                value={adminForm.password}
+                onChange={(e) =>
+                  setAdminForm((prev) => ({
+                    ...prev,
+                    password: e.target.value,
+                  }))
+                }
+                placeholder="Digite sua senha"
+              />
+            </label>
+            <button type="submit" className="primary full">
+              Entrar como administrador
+            </button>
+          </form>
+        </Modal>
+      )}
       {help && (
         <Modal close={() => setHelp(false)}>
           <span className="modalicon">
@@ -662,15 +1356,15 @@ export default function Home() {
           </span>
           <h2>Novo comunicado</h2>
           <p>Publicação restrita à gestão e liderança.</p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setNewNotice(false);
-            }}
-          >
+          <form onSubmit={publishNotice}>
             <label>
               Categoria
-              <select>
+              <select
+                value={noticeDraft.category}
+                onChange={(e) =>
+                  setNoticeDraft((p) => ({ ...p, category: e.target.value }))
+                }
+              >
                 <option>Procedimento</option>
                 <option>Urgente</option>
                 <option>Estoque</option>
@@ -679,17 +1373,28 @@ export default function Home() {
             </label>
             <label>
               Título
-              <input required placeholder="Assunto principal" />
+              <input
+                required
+                value={noticeDraft.title}
+                onChange={(e) =>
+                  setNoticeDraft((p) => ({ ...p, title: e.target.value }))
+                }
+                placeholder="Assunto principal"
+              />
             </label>
             <label>
               Mensagem
               <textarea
                 required
                 rows={4}
+                value={noticeDraft.body}
+                onChange={(e) =>
+                  setNoticeDraft((p) => ({ ...p, body: e.target.value }))
+                }
                 placeholder="Escreva a informação completa..."
               />
             </label>
-            <button className="primary full">
+            <button type="submit" className="primary full">
               <Send />
               Publicar comunicado
             </button>
@@ -699,6 +1404,25 @@ export default function Home() {
     </main>
   );
 }
+
+function ErrorToast({
+  message,
+  onClose,
+}: {
+  message: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="error-toast" role="alert">
+      <span className="error-toast-icon">!</span>
+      <span>{message}</span>
+      <button type="button" onClick={onClose} aria-label="Fechar aviso">
+        <X />
+      </button>
+    </div>
+  );
+}
+
 function Modal({
   children,
   close,

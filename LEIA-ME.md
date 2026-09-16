@@ -4,7 +4,11 @@ Demo de comunicação técnica interna.
 
 ## Como abrir
 
-### Opção 1: abrir sem instalar Node.js
+### Opção 1: abrir online
+
+Abra a demo online - https://techchat-demo.vercel.app/
+
+### Opção 2: abrir sem instalar Node.js
 
 1. Abra a pasta do projeto.
 2. Dê **dois cliques** em `ABRIR-DEMO-PORTATIL.bat`.
@@ -13,7 +17,7 @@ Demo de comunicação técnica interna.
 
 O Node.js portátil será instalado somente dentro da pasta do projeto. Nada será instalado no Windows.
 
-### Opção 2: abrir com Node.js instalado
+### Opção 3: abrir com Node.js instalado
 
 1. Instale o **Node.js** no computador, caso ainda não esteja instalado.
 2. Abra a pasta do projeto.

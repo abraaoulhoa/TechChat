@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.node-portable/
 /.pnp
 .pnp.*
 .yarn/*
