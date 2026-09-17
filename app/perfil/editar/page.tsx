@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { User } from "lucide-react";
+import { useState } from "react";
 
 type ProfileData = {
   name: string;
@@ -20,18 +21,18 @@ const defaultProfile: ProfileData = {
 };
 
 export default function EditProfilePage() {
-  const [form, setForm] = useState<ProfileData>(defaultProfile);
-  const [initialForm, setInitialForm] = useState<ProfileData>(defaultProfile);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const [form, setForm] = useState<ProfileData>(() => {
+    if (typeof window === "undefined") return defaultProfile;
 
     const saved = window.localStorage.getItem("techchat-profile");
-    const profile = saved ? (JSON.parse(saved) as ProfileData) : defaultProfile;
+    return saved ? (JSON.parse(saved) as ProfileData) : defaultProfile;
+  });
+  const [initialForm, setInitialForm] = useState<ProfileData>(() => {
+    if (typeof window === "undefined") return defaultProfile;
 
-    setForm(profile);
-    setInitialForm(profile);
-  }, []);
+    const saved = window.localStorage.getItem("techchat-profile");
+    return saved ? (JSON.parse(saved) as ProfileData) : defaultProfile;
+  });
 
   function updateField(field: keyof ProfileData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -55,6 +56,21 @@ export default function EditProfilePage() {
 
   return (
     <main className="edit-page">
+      <header className="top profile-top">
+        <span className="section-icon">
+          <User />
+        </span>
+        <div className="heading">
+          <h1>Editar perfil</h1>
+          <p>Atualize seus dados e informações</p>
+        </div>
+        <div className="top-actions">
+          <Link href="/perfil" className="link-button">
+            Voltar
+          </Link>
+        </div>
+      </header>
+
       <div className="edit-shell">
         <header className="edit-header">
           <h1>Editar perfil</h1>

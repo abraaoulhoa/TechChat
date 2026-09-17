@@ -1,8 +1,24 @@
 import Link from "next/link";
+import { User } from "lucide-react";
 
 export default function PerfilPage() {
   return (
     <main className="profile-page">
+      <header className="top profile-top">
+        <span className="section-icon">
+          <User />
+        </span>
+        <div className="heading">
+          <h1>Perfil</h1>
+          <p>Dados da sua conta e acesso</p>
+        </div>
+        <div className="top-actions">
+          <Link href="/" className="link-button">
+            Voltar ao chat
+          </Link>
+        </div>
+      </header>
+
       <div className="profile-shell">
         <header className="profile-header">
           <div className="profile-avatar">AU</div>

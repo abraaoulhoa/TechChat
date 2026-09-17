@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guia de Comentários — Repair OPPO</title>
+<title>GUIA DE COMENTÁRIOS — Repair OPPO</title>
 <style>
   :root{
     --ml-blue-dark:#00234a;
@@ -30,36 +30,98 @@
   }
   #app{min-height:100vh;display:flex;flex-direction:column;}
 
-  header{
-    background:linear-gradient(120deg,var(--ml-blue-dark),var(--ml-blue) 60%,var(--ml-blue-mid));
-    color:#fff;
-    padding:18px 24px;
-    display:flex;align-items:center;gap:16px;
-    box-shadow:var(--shadow);
-    position:sticky;top:0;z-index:10;
+  #guideHeader{
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:11px 18px 11px 22px;
+    border-bottom:1px solid var(--ml-border);
+    background:#07121d;
+    box-shadow:0 2px 12px rgba(0,0,0,.22);
+    position:sticky;
+    top:0;
+    z-index:10;
   }
-  header h1{
-    font-size:1.15rem;margin:0;font-weight:700;letter-spacing:.2px;flex:1;
+  .guide-header-left{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    min-width:0;
+    flex:1;
   }
-  header .sub{font-size:.75rem;color:#cfe4ff;font-weight:400;display:block;margin-top:2px;}
-  .status-pill{
-    display:flex;align-items:center;gap:6px;
-    background:rgba(255,255,255,0.12);
-    padding:6px 12px;border-radius:999px;font-size:.78rem;
+  .guide-section-icon{
+    width:40px;
+    height:40px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:#0d3155;
+    border:1px solid #205485;
+    color:#6daaff;
+    font-size:18px;
+    flex:none;
+  }
+  .guide-heading{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .guide-heading h1{
+    margin:0;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:.2px;
+    color:#edf5fb;
+  }
+  .guide-heading p{
+    margin:3px 0 0;
+    font-size:11px;
+    color:#8ca2b4;
     white-space:nowrap;
   }
-  .status-dot{width:8px;height:8px;border-radius:50%;background:#ffb020;}
-  .status-dot.on{background:#3ddc84;}
-  .status-dot.off{background:#ff5c5c;}
-
-  .icon-btn{
-    background:rgba(255,255,255,0.14);
-    border:none;color:#fff;border-radius:10px;
-    width:38px;height:38px;display:flex;align-items:center;justify-content:center;
-    cursor:pointer;font-size:1.1rem;transition:.15s;
+  .guide-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-left:auto;
   }
-  .icon-btn:hover{background:rgba(255,255,255,0.26);}
-  .piece-btn{width:auto;padding:0 12px;font-size:.78rem;}
+  .guide-icon-btn{
+    background:#0b1b28;
+    border:1px solid var(--ml-border);
+    color:#edf5fb;
+    border-radius:9px;
+    width:38px;
+    height:38px;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    font-size:1.05rem;
+    transition:.15s;
+  }
+  .guide-icon-btn:hover{background:#10263a;}
+  .guide-piece-btn{
+    width:auto;
+    padding:0 12px;
+    font-size:12px;
+  }
+
+  .guide-back-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border:1px solid var(--ml-border);
+    background:#0b1b28;
+    color:#edf5fb;
+    border-radius:9px;
+    padding:9px 12px;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    margin-left:8px;
+  }
 
   main{flex:1;padding:22px;max-width:1100px;width:100%;margin:0 auto;}
 
@@ -82,8 +144,35 @@
   .btn-sm{padding:6px 12px;font-size:.78rem;border-radius:8px;}
   .btn:disabled{opacity:.5;cursor:not-allowed;}
 
-  .search-wrap{margin-bottom:20px;}
+  .search-wrap{
+    position:relative;
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .search-back{
+    flex:none;
+    width:34px;
+    height:34px;
+    border:1px solid rgba(124, 160, 196, 0.38);
+    background:rgba(12, 27, 39, 0.9);
+    color:#dfeaf6;
+    border-radius:9px;
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    font-size:18px;
+    line-height:1;
+    box-shadow:0 2px 8px rgba(0,0,0,0.18);
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .search-back:hover{
+    transform:translateX(-1px);
+    border-color:rgba(150, 193, 255, 0.58);
+  }
   .search-wrap input{
+    flex:1;
     width:100%;padding:14px 18px;border-radius:12px;border:1.5px solid var(--ml-border);
     font-size:1rem;background:#fff;box-shadow:var(--shadow);
   }
@@ -96,21 +185,23 @@
   }
 
   .grid{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;
   }
   .cat-card{
     background:var(--ml-card);border:1px solid var(--ml-border);border-radius:14px;
-    padding:20px 16px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);
-    display:flex;flex-direction:column;gap:6px;text-align:left;
+    padding:16px 14px;cursor:pointer;transition:.15s;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;gap:8px;text-align:left;
+    min-height:136px;
+    justify-content:center;
   }
   .cat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--ml-cyan);}
   .cat-card .badge{
-    width:34px;height:34px;border-radius:9px;background:var(--ml-blue);color:#fff;
-    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;
-    margin-bottom:6px;
+    width:42px;height:42px;border-radius:10px;background:var(--ml-blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;
+    margin-bottom:8px;
   }
-  .cat-card h3{margin:0;font-size:.95rem;letter-spacing:.2px;}
-  .cat-card .count{font-size:.76rem;color:var(--ml-text-soft);}
+  .cat-card h3{margin:0;font-size:1.05rem;letter-spacing:.2px;line-height:1.25;}
+  .cat-card .count{font-size:.82rem;color:var(--ml-text-soft);}
 
   .comment-list{display:flex;flex-direction:column;gap:10px;}
   .comment-row{
@@ -177,13 +268,8 @@
   }
   .toast.show{opacity:1;}
 
-  footer{text-align:center;padding:16px;font-size:.74rem;color:var(--ml-text-soft);}
-  footer button{background:none;border:none;color:var(--ml-text-soft);font-size:.74rem;cursor:pointer;text-decoration:underline;}
-
   @media (max-width:520px){
-    header{padding:14px 16px;}
     main{padding:14px;}
-    .status-pill span.label{display:none;}
   }
   html[data-theme="dark"]{
     --ml-blue-dark:#071522;--ml-blue:#2c82ff;--ml-blue-mid:#176fd3;--ml-cyan:#54a8ff;
@@ -191,7 +277,6 @@
     --ml-border:#20384c;--ml-success:#2cca74;--ml-danger:#f04b5f;--ml-warning:#e9ad34;
     --shadow:0 2px 12px rgba(0,0,0,.22);--shadow-lg:0 16px 40px rgba(0,0,0,.38);
   }
-  html[data-theme="dark"] header{background:#07121d;border-bottom:1px solid var(--ml-border);}
   html[data-theme="dark"] .connect-banner,
   html[data-theme="dark"] .search-wrap input,
   html[data-theme="dark"] .cat-card,
@@ -214,25 +299,7 @@
 </head>
 <body>
 <div id="app">
-  <header>
-    <div>
-      <h1>Guia de Comentários — Repair OPPO
-        <span class="sub" id="lastUpdated"></span>
-      </h1>
-    </div>
-    <div class="status-pill" id="statusPill">
-      <span class="status-dot off" id="statusDot"></span>
-      <span class="label" id="statusLabel">config não conectada</span>
-    </div>
-    <button class="icon-btn piece-btn" id="pieceBtn" title="Trocar peça" hidden></button>
-    <button class="icon-btn" id="adminBtn" title="Administração" hidden>⚙</button>
-  </header>
-
   <main id="mainArea"></main>
-
-  <footer>
-    OPPO · A&amp;R · Sistema offline — instale sempre em <strong>C:\Sistema-Falhas-OPPO\</strong> para conexão automática nas próximas vezes.
-  </footer>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -370,6 +437,61 @@ function setConfigData(data){
   CONFIG = null;
 }
 
+function getCustomOppoBoards(){
+  try{
+    const raw = localStorage.getItem('techchat-oppo-guide-custom-data');
+    if(!raw) return [];
+    const parsed = JSON.parse(raw);
+    const boards = Array.isArray(parsed?.boards) ? parsed.boards : [];
+    return boards.filter(board => board && typeof board.code === 'string' && board.code.trim());
+  }catch{
+    return [];
+  }
+}
+
+function applyCustomOppoBoards(){
+  const customBoards = getCustomOppoBoards();
+  if(!customBoards.length) return;
+
+  const ensureBoard = (piece) => {
+    if(!piece || !Array.isArray(piece.categorias)) return;
+
+    customBoards.forEach((board) => {
+      const code = String(board.code || '').trim().toUpperCase();
+      if(!code) return;
+
+      const existing = piece.categorias.find((cat) => String(cat.nome || '').trim().toUpperCase() === code);
+      const normalizedComments = (Array.isArray(board.comments) ? board.comments : [])
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+
+      if(existing){
+        const seen = new Set(existing.comentarios.map((item) => String(item.texto || '').trim()));
+        normalizedComments.forEach((text) => {
+          if(!seen.has(text)){
+            existing.comentarios.push({ id: `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`, texto: text });
+            seen.add(text);
+          }
+        });
+        return;
+      }
+
+      piece.categorias.push({
+        id: `custom-${code}`,
+        nome: code,
+        comentarios: normalizedComments.map((text, index) => ({ id: `custom-${code}-${index}`, texto: text }))
+      });
+    });
+  };
+
+  if(FILE_CONFIG && Array.isArray(FILE_CONFIG.pecas)){
+    FILE_CONFIG.pecas.forEach(ensureBoard);
+  }
+  if(CONFIG && Array.isArray(CONFIG.categorias)){
+    ensureBoard(CONFIG);
+  }
+}
+
 function selectPiece(pieceId){
   const piece = FILE_CONFIG.pecas.find(item=>item.id === pieceId);
   if(!piece) return;
@@ -380,22 +502,53 @@ function selectPiece(pieceId){
   render();
 }
 
+function isAdminEnabled(){
+  return localStorage.getItem('techchat-admin-enabled') === 'true';
+}
+
+function syncGuideAdminVisibility(){
+  const adminBtn = document.getElementById('adminBtn');
+  if(adminBtn) adminBtn.hidden = !isAdminEnabled();
+}
+
 function renderPieceSelection(){
   const main = document.getElementById('mainArea');
   main.innerHTML = '';
-  document.getElementById('adminBtn').hidden = true;
-  document.getElementById('pieceBtn').hidden = true;
-  const wrap = document.createElement('div');
-  wrap.className = 'connect-banner';
-  wrap.innerHTML = '<div style="width:100%;"><strong>Selecione a peça</strong><p style="margin-top:6px;">Escolha a peça para carregar os comentários correspondentes.</p></div>';
+  syncGuideAdminVisibility();
+  const pieceBtn = document.getElementById('pieceBtn');
+  if(pieceBtn) pieceBtn.hidden = true;
+
+  const commentsWrap = document.createElement('div');
+  commentsWrap.className = 'connect-banner';
+  commentsWrap.innerHTML = '<div style="width:100%;"><strong>GUIA DE COMENTÁRIOS</strong><p style="margin-top:6px;">Selecione o código da placa para carregar os comentários correspondentes.</p></div>';
   [{id:'2AC349', nome:'2AC349'}, {id:'2AC214', nome:'2AC214'}].forEach(piece=>{
     const button = document.createElement('button');
     button.className = 'btn btn-primary';
     button.textContent = piece.nome || piece.id;
     button.onclick = ()=> bundledMode ? selectPiece(piece.id) : connectPieceFile(piece.id);
-    wrap.appendChild(button);
+    commentsWrap.appendChild(button);
   });
-  main.appendChild(wrap);
+  main.appendChild(commentsWrap);
+
+  const schematicsWrap = document.createElement('div');
+  schematicsWrap.className = 'connect-banner';
+  schematicsWrap.innerHTML = '<div style="width:100%;"><strong>ESQUEMÁTICOS</strong><p style="margin-top:6px;">Acesse os diagramas e referências técnicas da placa.</p></div>';
+  const schematicBtn = document.createElement('button');
+  schematicBtn.className = 'btn btn-primary';
+  schematicBtn.textContent = 'Abrir';
+  schematicBtn.onclick = () => showToast('Seção de esquemáticos em desenvolvimento.');
+  schematicsWrap.appendChild(schematicBtn);
+  main.appendChild(schematicsWrap);
+
+  const partsWrap = document.createElement('div');
+  partsWrap.className = 'connect-banner';
+  partsWrap.innerHTML = '<div style="width:100%;"><strong>CONTROLE DE PEÇAS</strong><p style="margin-top:6px;">Acompanhe e gerencie o controle de peças e componentes da linha.</p></div>';
+  const partsBtn = document.createElement('button');
+  partsBtn.className = 'btn btn-primary';
+  partsBtn.textContent = 'Abrir';
+  partsBtn.onclick = () => showToast('Seção de controle de peças em desenvolvimento.');
+  partsWrap.appendChild(partsBtn);
+  main.appendChild(partsWrap);
 }
 
 async function connectPieceFile(pieceId){
@@ -442,12 +595,8 @@ async function saveConfigToFile(){
 }
 
 function setStatus(mode, label){
-  const dot = document.getElementById('statusDot');
-  const lbl = document.getElementById('statusLabel');
-  dot.className = 'status-dot ' + (mode === 'on' ? 'on' : mode === 'off' ? 'off' : '');
-  lbl.textContent = label;
-  document.getElementById('statusPill').onclick = (mode !== 'on') ? connectConfigFile : null;
-  document.getElementById('statusPill').style.cursor = (mode !== 'on') ? 'pointer' : 'default';
+  // Status indicator removed from the header; keep function as a no-op.
+  return;
 }
 
 /* =========================================================
@@ -466,22 +615,53 @@ function showToast(msg){
    RENDER — TELA PRINCIPAL
 ========================================================= */
 function render(){
+  syncGuideAdminVisibility();
+  applyCustomOppoBoards();
   if(!CONFIG){
     renderPieceSelection();
     return;
   }
-  document.getElementById('lastUpdated').textContent = CONFIG.atualizadoEm ? ('atualizado em ' + CONFIG.atualizadoEm) : '';
   const pieceBtn = document.getElementById('pieceBtn');
-  pieceBtn.hidden = false;
-  pieceBtn.textContent = CONFIG.nome || CONFIG.id;
-  pieceBtn.onclick = ()=>{ CONFIG = null; selectedPieceId = null; render(); };
-  document.getElementById('adminBtn').hidden = false;
+  if(pieceBtn){
+    pieceBtn.hidden = false;
+    pieceBtn.textContent = CONFIG.nome || CONFIG.id;
+    pieceBtn.onclick = ()=>{ CONFIG = null; selectedPieceId = null; render(); };
+  }
+  const adminBtn = document.getElementById('adminBtn');
+  if(adminBtn) adminBtn.hidden = !isAdminEnabled();
   const main = document.getElementById('mainArea');
   main.innerHTML = '';
 
   const searchWrap = document.createElement('div');
   searchWrap.className = 'search-wrap';
-  searchWrap.innerHTML = `<input type="text" id="searchInput" placeholder="Buscar comentário em todas as categorias..." value="${escapeHtml(searchTerm)}">`;
+
+  const isGuideNavigation = CONFIG && (currentView.screen === 'grid' || currentView.screen === 'category' || searchTerm.trim().length > 0);
+  if(isGuideNavigation){
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'search-back';
+    backBtn.setAttribute('aria-label', 'Voltar');
+    backBtn.textContent = '←';
+    backBtn.onclick = () => {
+      if(searchTerm.trim()){
+        searchTerm = '';
+      } else if(currentView.screen === 'category'){
+        currentView = { screen: 'grid', categoryId: null };
+      } else {
+        CONFIG = null;
+        selectedPieceId = null;
+      }
+      render();
+    };
+    searchWrap.appendChild(backBtn);
+  }
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.id = 'searchInput';
+  searchInput.placeholder = 'Buscar comentário em todas as categorias...';
+  searchInput.value = searchTerm;
+  searchWrap.appendChild(searchInput);
   main.appendChild(searchWrap);
 
   setTimeout(()=>{
@@ -604,7 +784,8 @@ function escapeHtml(str){
 /* =========================================================
    ADMIN — PIN + CRUD
 ========================================================= */
-document.getElementById('adminBtn').addEventListener('click', openPinModal);
+const adminBtn = document.getElementById('adminBtn');
+if(adminBtn) adminBtn.addEventListener('click', openPinModal);
 
 function openPinModal(){
   const overlay = document.createElement('div');
@@ -629,6 +810,8 @@ function openPinModal(){
 function checkPin(){
   const val = document.getElementById('pinField').value;
   if(val === String(CONFIG.pin)){
+    localStorage.setItem('techchat-admin-enabled', 'true');
+    syncGuideAdminVisibility();
     closeOverlay('pinOverlay');
     openAdminPanel();
   } else {
@@ -805,6 +988,10 @@ async function persistAndRefresh(keepOpen, openCatId){
 /* =========================================================
    INÍCIO
 ========================================================= */
+window.addEventListener('storage', (event) => {
+  if(event.key === 'techchat-admin-enabled') syncGuideAdminVisibility();
+});
+
 setConfigData(FALLBACK_CONFIG);
 autoConnect();
 </script>

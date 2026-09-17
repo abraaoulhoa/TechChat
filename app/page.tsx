@@ -1,13 +1,14 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   Bell,
   Check,
   CheckCheck,
   ChevronDown,
   CircleHelp,
-  Hash,
   Image as ImageIcon,
   LogOut,
   Menu,
@@ -181,6 +182,7 @@ type AdminChannel = {
   id: number;
   name: string;
   description: string;
+  icon: string;
   kind: "technical" | "info";
 };
 
@@ -242,16 +244,49 @@ const seedNotices: Notice[] = [
 export default function Home() {
   const [view, setView] = useState<View>("board");
   const [channel, setChannel] = useState<string>("hardware");
-  const [messages, setMessages] = useState<Record<string, Msg[]>>(seed);
+  const [messages, setMessages] = useState<Record<string, Msg[]>>(() => {
+    if (typeof window === "undefined") return seed;
+
+    const saved = window.localStorage.getItem("techchat-messages");
+    if (!saved) return seed;
+
+    try {
+      const parsed = JSON.parse(saved) as Partial<Record<Channel, Msg[]>>;
+      return { ...seed, ...parsed };
+    } catch {
+      return seed;
+    }
+  });
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
+  const [teamQuery, setTeamQuery] = useState("");
+  const [selectedContactId, setSelectedContactId] = useState<number | null>(
+    null,
+  );
+  const [directDraft, setDirectDraft] = useState("");
   const [filter, setFilter] = useState("todos");
-  const [read, setRead] = useState<number[]>([2]);
+  const [read, setRead] = useState<number[]>(() => {
+    if (typeof window === "undefined") return [2];
+
+    const saved = window.localStorage.getItem("techchat-read");
+    if (!saved) return [2];
+
+    try {
+      return JSON.parse(saved) as number[];
+    } catch {
+      return [2];
+    }
+  });
   const [drawer, setDrawer] = useState(false);
   const [help, setHelp] = useState(false);
   const [newNotice, setNewNotice] = useState(false);
   const [attachment, setAttachment] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    return window.localStorage.getItem("techchat-theme") === "light"
+      ? "light"
+      : "dark";
+  });
   const [entryChecked, setEntryChecked] = useState(false);
   const [entrySession, setEntrySession] = useState(false);
   const [entryLoading, setEntryLoading] = useState(false);
@@ -267,14 +302,103 @@ export default function Home() {
   const [adminModal, setAdminModal] = useState(false);
   const [adminForm, setAdminForm] = useState({ email: "", password: "" });
   const [adminError, setAdminError] = useState("");
-  const [noticeList, setNoticeList] = useState<Notice[]>(seedNotices);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("Mensagem ofensiva");
+  const [reportText, setReportText] = useState("");
+  const [reportTarget, setReportTarget] = useState<number | null>(null);
+  const [reportAttachment, setReportAttachment] = useState<string | null>(null);
+  const [noticeList, setNoticeList] = useState<Notice[]>(() => {
+    if (typeof window === "undefined") return seedNotices;
+
+    const saved = window.localStorage.getItem("techchat-notices");
+    if (!saved) return seedNotices;
+
+    try {
+      return JSON.parse(saved) as Notice[];
+    } catch {
+      return seedNotices;
+    }
+  });
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(baseTeamMembers);
-  const [adminChannels, setAdminChannels] = useState<AdminChannel[]>([]);
+  const [directMessages, setDirectMessages] = useState<
+    Record<
+      number,
+      { id: number; from: "me" | "them"; text: string; time: string }[]
+    >
+  >({
+    1: [
+      {
+        id: 1,
+        from: "them",
+        text: "Vou revisar a bancada 4 com você hoje.",
+        time: "09:14",
+      },
+    ],
+    2: [
+      {
+        id: 1,
+        from: "them",
+        text: "Já tenho o diagnóstico do caso em andamento.",
+        time: "08:51",
+      },
+    ],
+    3: [
+      {
+        id: 1,
+        from: "them",
+        text: "A foto do reparo já foi enviada na revisão.",
+        time: "10:02",
+      },
+    ],
+    4: [
+      {
+        id: 1,
+        from: "them",
+        text: "Me chama se precisar de um segundo parecer.",
+        time: "07:40",
+      },
+    ],
+  });
+  const [adminChannels, setAdminChannels] = useState<AdminChannel[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    const saved = window.localStorage.getItem("techchat-admin-channels");
+    if (!saved) return [];
+
+    try {
+      return JSON.parse(saved) as AdminChannel[];
+    } catch {
+      return [];
+    }
+  });
   const [newMember, setNewMember] = useState({ initials: "", name: "" });
   const [newChannel, setNewChannel] = useState({
     name: "",
     description: "",
+    icon: "💬",
     kind: "technical" as "technical" | "info",
+  });
+  const [oppoBoardForm, setOppoBoardForm] = useState({
+    code: "",
+    comment: "",
+  });
+  const [oppoBoards, setOppoBoards] = useState<
+    { code: string; comments: string[] }[]
+  >(() => {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const saved = window.localStorage.getItem(
+        "techchat-oppo-guide-custom-data",
+      );
+      if (!saved) return [];
+      const parsed = JSON.parse(saved) as {
+        boards?: { code: string; comments: string[] }[];
+      };
+      return Array.isArray(parsed.boards) ? parsed.boards : [];
+    } catch {
+      return [];
+    }
   });
   const router = useRouter();
   const [noticeDraft, setNoticeDraft] = useState({
@@ -283,59 +407,6 @@ export default function Home() {
     body: "",
   });
   const file = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const savedTheme = window.localStorage.getItem("techchat-theme");
-    if (savedTheme === "light") setTheme("light");
-    setEntrySession(
-      window.localStorage.getItem("techchat-session-v2") === "active",
-    );
-    setEntryChecked(true);
-
-    const savedMessages = window.localStorage.getItem("techchat-messages");
-    const savedNotices = window.localStorage.getItem("techchat-notices");
-    const savedRead = window.localStorage.getItem("techchat-read");
-    const savedAdminChannels = window.localStorage.getItem(
-      "techchat-admin-channels",
-    );
-
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages) as Partial<
-          Record<Channel, Msg[]>
-        >;
-        setMessages({ ...seed, ...parsed });
-      } catch {
-        setMessages(seed);
-      }
-    }
-
-    if (savedNotices) {
-      try {
-        setNoticeList(JSON.parse(savedNotices) as Notice[]);
-      } catch {
-        setNoticeList(seedNotices);
-      }
-    }
-
-    if (savedRead) {
-      try {
-        setRead(JSON.parse(savedRead) as number[]);
-      } catch {
-        setRead([2]);
-      }
-    }
-
-    if (savedAdminChannels) {
-      try {
-        setAdminChannels(JSON.parse(savedAdminChannels) as AdminChannel[]);
-      } catch {
-        setAdminChannels([]);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -359,6 +430,31 @@ export default function Home() {
       JSON.stringify(adminChannels),
     );
   }, [adminChannels]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(
+      "techchat-oppo-guide-custom-data",
+      JSON.stringify({ boards: oppoBoards }),
+    );
+  }, [oppoBoards]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const timer = window.setTimeout(() => {
+      const sessionIsActive =
+        window.localStorage.getItem("techchat-session-v2") === "active";
+      const adminEnabled =
+        window.localStorage.getItem("techchat-admin-enabled") === "true";
+
+      setEntrySession(sessionIsActive);
+      setIsAdmin(adminEnabled);
+      setEntryChecked(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -428,6 +524,7 @@ export default function Home() {
 
   function leaveTechChat() {
     window.localStorage.removeItem("techchat-session-v2");
+    window.localStorage.removeItem("techchat-admin-enabled");
     setEntrySession(false);
     setEntryChecked(true);
     setIsAdmin(false);
@@ -463,10 +560,28 @@ export default function Home() {
     [adminChannels],
   );
 
+  const channelIcons = useMemo(
+    () => ({
+      geral: "💬",
+      hardware: "🔧",
+      software: "🧠",
+      celulares: "📱",
+      duvidas: "❓",
+      urgentes: "🚨",
+      ...Object.fromEntries(
+        adminChannels.map((entry) => [
+          entry.name.trim(),
+          entry.icon.trim() || "💬",
+        ]),
+      ),
+    }),
+    [adminChannels],
+  );
+
   const infoItems = useMemo(
     () => [
       { id: "notices", label: "Comunicados" },
-      { id: "guide", label: "Guia OPPO" },
+      { id: "guide", label: "OPPO" },
       ...adminChannels
         .filter((entry) => entry.kind === "info")
         .map((entry) => ({ id: entry.name, label: entry.name })),
@@ -483,6 +598,41 @@ export default function Home() {
       ),
     [messages, channel, query],
   );
+
+  const filteredTeamMembers = useMemo(
+    () =>
+      teamMembers.filter((person) =>
+        person.name.toLowerCase().includes(teamQuery.toLowerCase()),
+      ),
+    [teamMembers, teamQuery],
+  );
+
+  const selectedContact =
+    teamMembers.find((person) => person.id === selectedContactId) ?? null;
+
+  function sendDirectMessage() {
+    if (!selectedContactId || !directDraft.trim()) return;
+
+    const time = new Date().toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    setDirectMessages((prev) => ({
+      ...prev,
+      [selectedContactId]: [
+        ...(prev[selectedContactId] ?? []),
+        {
+          id: Date.now(),
+          from: "me",
+          text: directDraft.trim(),
+          time,
+        },
+      ],
+    }));
+    setDirectDraft("");
+  }
+
   function go(v: View) {
     setView(v);
     setDrawer(false);
@@ -523,8 +673,55 @@ export default function Home() {
     }));
   }
 
+  function openReportModal(messageId?: number) {
+    setReportReason("Mensagem ofensiva");
+    setReportText("");
+    setReportAttachment(null);
+    setReportTarget(messageId ?? null);
+    setReportOpen(true);
+  }
+
+  function submitReport(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const normalizedText = reportText.trim();
+    if (!normalizedText) return;
+
+    const report = {
+      id: Date.now(),
+      channel,
+      messageId: reportTarget,
+      reason: reportReason,
+      description: normalizedText,
+      attachment: reportAttachment,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("techchat-reports");
+      const reports = saved ? JSON.parse(saved) : [];
+      window.localStorage.setItem(
+        "techchat-reports",
+        JSON.stringify([report, ...reports]),
+      );
+    }
+
+    setReportOpen(false);
+    setReportTarget(null);
+    setReportText("");
+    setReportAttachment(null);
+    setReportReason("Mensagem ofensiva");
+  }
+
   function publishNotice(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!isAdmin) {
+      setNewNotice(false);
+      setAdminError("Apenas administradores podem publicar comunicados.");
+      openAdminModal();
+      return;
+    }
 
     if (!noticeDraft.title.trim() || !noticeDraft.body.trim()) return;
 
@@ -556,14 +753,15 @@ export default function Home() {
   function addAdminChannel() {
     const name = newChannel.name.trim();
     const description = newChannel.description.trim();
+    const icon = newChannel.icon.trim() || "💬";
     if (!name || !description) return;
 
     const id = Date.now();
     setAdminChannels((prev) => [
       ...prev,
-      { id, name, description, kind: newChannel.kind },
+      { id, name, description, icon, kind: newChannel.kind },
     ]);
-    setNewChannel({ name: "", description: "", kind: "technical" });
+    setNewChannel({ name: "", description: "", icon: "💬", kind: "technical" });
 
     if (newChannel.kind === "technical") {
       setMessages((prev) => ({ ...prev, [name]: prev[name] ?? [] }));
@@ -596,8 +794,25 @@ export default function Home() {
     setNewMember({ initials: "", name: "" });
   }
 
-  function removeCollaborator(id: number) {
-    setTeamMembers((prev) => prev.filter((member) => member.id !== id));
+  function addOppoBoard() {
+    const code = oppoBoardForm.code.trim().toUpperCase();
+    const comment = oppoBoardForm.comment.trim();
+    if (!code || !comment) return;
+
+    setOppoBoards((prev) => {
+      const exists = prev.find((entry) => entry.code === code);
+      if (exists) {
+        return prev.map((entry) =>
+          entry.code === code
+            ? { ...entry, comments: [...new Set([...entry.comments, comment])] }
+            : entry,
+        );
+      }
+
+      return [...prev, { code, comments: [comment] }];
+    });
+
+    setOppoBoardForm({ code: "", comment: "" });
   }
 
   function openAdminModal() {
@@ -623,6 +838,7 @@ export default function Home() {
       return;
     }
 
+    window.localStorage.setItem("techchat-admin-enabled", "true");
     setIsAdmin(true);
     setAdminError("");
     setAdminModal(false);
@@ -835,30 +1051,36 @@ export default function Home() {
               }}
               key={c}
             >
-              <Hash />
+              <span>{channelIcons[c] ?? "💬"}</span>
               <span>{c === "duvidas" ? "dúvidas" : c}</span>
               {c === "urgentes" && <b>1</b>}
             </button>
           ),
         )}
         <label className="navlabel separate">Informação</label>
-        {infoItems.map((item) => (
-          <button
-            key={item.id}
-            className={"nav " + (view === "notices" ? "active" : "")}
-            onClick={() => {
-              if (item.id === "guide") {
-                go("guide");
-                return;
-              }
-              go("notices");
-            }}
-          >
-            {item.id === "guide" ? <BookOpen /> : <Megaphone />}
-            <span>{item.label}</span>
-            {item.id === "notices" && <b>{unreadCount}</b>}
-          </button>
-        ))}
+        {infoItems.map((item) => {
+          const isActive =
+            (item.id === "notices" && view === "notices") ||
+            (item.id === "guide" && view === "guide");
+
+          return (
+            <button
+              key={item.id}
+              className={"nav " + (isActive ? "active" : "")}
+              onClick={() => {
+                if (item.id === "guide") {
+                  go("guide");
+                  return;
+                }
+                go("notices");
+              }}
+            >
+              {item.id === "guide" ? <BookOpen /> : <Megaphone />}
+              <span>{item.label}</span>
+              {item.id === "notices" && <b>{unreadCount}</b>}
+            </button>
+          );
+        })}
         {isAdmin && (
           <div className="admin-panel">
             <h3>Administração</h3>
@@ -884,6 +1106,20 @@ export default function Home() {
                     }))
                   }
                   placeholder="Descreva o canal"
+                />
+              </label>
+              <label>
+                Emoji ou ícone
+                <input
+                  value={newChannel.icon}
+                  onChange={(e) =>
+                    setNewChannel((prev) => ({
+                      ...prev,
+                      icon: e.target.value,
+                    }))
+                  }
+                  placeholder="💬"
+                  maxLength={3}
                 />
               </label>
               <select
@@ -957,30 +1193,44 @@ export default function Home() {
                 Adicionar
               </button>
             </div>
+            <div className="admin-section">
+              <label>
+                Código da placa
+                <input
+                  value={oppoBoardForm.code}
+                  onChange={(e) =>
+                    setOppoBoardForm((prev) => ({
+                      ...prev,
+                      code: e.target.value,
+                    }))
+                  }
+                  placeholder="Ex.: 2AC999"
+                />
+              </label>
+              <label>
+                Novo comentário de falha
+                <textarea
+                  value={oppoBoardForm.comment}
+                  onChange={(e) =>
+                    setOppoBoardForm((prev) => ({
+                      ...prev,
+                      comment: e.target.value,
+                    }))
+                  }
+                  placeholder="Descreva a falha ou procedimento da placa"
+                  rows={3}
+                />
+              </label>
+              <button
+                type="button"
+                className="primary small"
+                onClick={addOppoBoard}
+              >
+                Adicionar placa e falha
+              </button>
+            </div>
           </div>
         )}
-        <div className="team">
-          <label className="navlabel">
-            Equipe online <b>{teamMembers.length}</b>
-          </label>
-          {teamMembers.map((person, i) => (
-            <div className="person" key={person.id}>
-              <span className={"avatar a" + (i % 4)}>{person.initials}</span>
-              <span>{person.name}</span>
-              {isAdmin && (
-                <button
-                  type="button"
-                  className="remove-member"
-                  onClick={() => removeCollaborator(person.id)}
-                  aria-label={`Excluir ${person.name}`}
-                >
-                  <X />
-                </button>
-              )}
-              {!isAdmin && <i />}
-            </div>
-          ))}
-        </div>
         <footer>
           <ShieldCheck /> Ambiente interno protegido
         </footer>
@@ -993,7 +1243,7 @@ export default function Home() {
           </button>
           <span className="section-icon">
             {view === "board" ? (
-              <Hash />
+              <MessageSquare />
             ) : view === "notices" ? (
               <Megaphone />
             ) : (
@@ -1008,35 +1258,29 @@ export default function Home() {
                   : channel
                 : view === "notices"
                   ? "Comunicados oficiais"
-                  : "Guia de comentários OPPO"}
+                  : "OPPO"}
             </h1>
             <p>
               {view === "board"
                 ? channels[channel]
                 : view === "notices"
                   ? "Informações publicadas pela gestão e liderança"
-                  : "Consulta rápida de falhas e textos padronizados"}
+                  : "Ferramentas e utilidades para OPPO"}
             </p>
           </div>
-          {view !== "guide" && (
-            <label className="search">
-              <Search />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={
-                  view === "board"
-                    ? "Pesquisar no canal"
-                    : "Pesquisar comunicados"
-                }
-              />
-              {query && (
-                <button onClick={() => setQuery("")}>
-                  <X />
-                </button>
-              )}
-            </label>
-          )}
+          <label className="search">
+            <Search />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Pesquisar"
+            />
+            {query && (
+              <button onClick={() => setQuery("")}>
+                <X />
+              </button>
+            )}
+          </label>
           <button
             className="icon theme-toggle"
             onClick={toggleTheme}
@@ -1054,6 +1298,14 @@ export default function Home() {
           <button className="help" onClick={() => setHelp(true)}>
             <CircleHelp />
             <span>Ajuda</span>
+          </button>
+          <button
+            className="report-btn"
+            onClick={() => openReportModal()}
+            title="Denunciar problema na conversa"
+          >
+            <AlertTriangle />
+            <span>Denunciar</span>
           </button>
         </header>
         {view === "board" && (
@@ -1084,12 +1336,22 @@ export default function Home() {
                           {m.role} · {m.time}
                         </small>
                         {m.tag && <em className={m.tone}>{m.tag}</em>}
-                        <button
-                          type="button"
-                          aria-label="Mais ações do comentário"
-                        >
-                          <MoreHorizontal />
-                        </button>
+                        <div className="message-actions">
+                          <button
+                            type="button"
+                            className="report-action"
+                            onClick={() => openReportModal(m.id)}
+                            aria-label={`Denunciar mensagem de ${m.name}`}
+                          >
+                            <AlertTriangle />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Mais ações do comentário"
+                          >
+                            <MoreHorizontal />
+                          </button>
+                        </div>
                       </div>
                       <p>{m.text}</p>
                       {m.details && (
@@ -1102,7 +1364,16 @@ export default function Home() {
                           ))}
                         </div>
                       )}
-                      {m.image && <img src={m.image} alt="Imagem do reparo" />}
+                      {m.image && (
+                        <Image
+                          src={m.image}
+                          alt="Imagem do reparo"
+                          width={640}
+                          height={360}
+                          unoptimized
+                          style={{ objectFit: "cover" }}
+                        />
+                      )}
                       {typeof m.likes === "number" && (
                         <button
                           type="button"
@@ -1157,7 +1428,7 @@ export default function Home() {
                       send();
                     }
                   }}
-                  placeholder={"Mensagem em #" + channel}
+                  placeholder={"Mensagem em " + channel}
                 />
                 <button
                   className="send"
@@ -1173,12 +1444,90 @@ export default function Home() {
               <span>
                 <Wrench />
               </span>
-              <h2>Canal #{channel}</h2>
+              <h2>Canal {channel}</h2>
               <p>{channels[channel]}</p>
               <hr />
               <div>
-                <Users /> <b>12</b> membros
+                <Users /> <b>{teamMembers.length}</b> membros
               </div>
+
+              <div className="team-chat-panel">
+                <div className="team-chat-header">
+                  <span className="team-chat-title">Equipe online</span>
+                  <span className="online-badge">{teamMembers.length}</span>
+                </div>
+                <label className="team-search">
+                  <Search />
+                  <input
+                    value={teamQuery}
+                    onChange={(event) => setTeamQuery(event.target.value)}
+                    placeholder="Procurar pessoa"
+                  />
+                </label>
+                <div className="team-chat-list">
+                  {filteredTeamMembers.length > 0 ? (
+                    filteredTeamMembers.map((person, i) => (
+                      <button
+                        key={person.id}
+                        type="button"
+                        className={
+                          "team-chat-item " +
+                          (selectedContactId === person.id ? "active" : "")
+                        }
+                        onClick={() => setSelectedContactId(person.id)}
+                      >
+                        <span className={"avatar a" + (i % 4)}>
+                          {person.initials}
+                        </span>
+                        <span className="team-chat-copy">
+                          <strong>{person.name}</strong>
+                          <small>Disponível</small>
+                        </span>
+                        <i className="presence" />
+                      </button>
+                    ))
+                  ) : (
+                    <div className="team-empty">Nenhuma pessoa encontrada.</div>
+                  )}
+                </div>
+                {selectedContact && (
+                  <div className="direct-chat">
+                    <div className="direct-chat-header">
+                      <span>Chat com {selectedContact.name}</span>
+                    </div>
+                    <div className="direct-chat-body">
+                      {(directMessages[selectedContact.id] ?? []).map(
+                        (message) => (
+                          <div
+                            key={message.id}
+                            className={"direct-message " + message.from}
+                          >
+                            <p>{message.text}</p>
+                            <small>{message.time}</small>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                    <div className="direct-chat-input">
+                      <input
+                        value={directDraft}
+                        onChange={(event) => setDirectDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            sendDirectMessage();
+                          }
+                        }}
+                        placeholder={`Mensagem para ${selectedContact.name}`}
+                      />
+                      <button type="button" onClick={sendDirectMessage}>
+                        Enviar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button onClick={() => setHelp(true)}>Como pedir ajuda</button>
             </aside>
           </div>
@@ -1202,10 +1551,12 @@ export default function Home() {
                   </button>
                 ))}
               </div>
-              <button className="primary" onClick={() => setNewNotice(true)}>
-                <Plus />
-                Novo comunicado
-              </button>
+              {isAdmin && (
+                <button className="primary" onClick={() => setNewNotice(true)}>
+                  <Plus />
+                  Novo comunicado
+                </button>
+              )}
             </div>
             <div className="noticegrid">
               {noticeList
@@ -1272,7 +1623,7 @@ export default function Home() {
           <div className="guide">
             <iframe
               key={theme}
-              title="Guia de Comentários OPPO"
+              title="GUIA DE COMENTÁRIOS OPPO"
               src={"/guia/index.html?theme=" + theme}
             />
           </div>
@@ -1347,6 +1698,77 @@ export default function Home() {
           <button className="primary full" onClick={() => setHelp(false)}>
             Entendi
           </button>
+        </Modal>
+      )}
+      {reportOpen && (
+        <Modal close={() => setReportOpen(false)}>
+          <span className="modalicon">
+            <AlertTriangle />
+          </span>
+          <h2>Denunciar problema</h2>
+          <p>
+            {reportTarget
+              ? "Reporte uma mensagem específica que não está adequada."
+              : "Reporte algo errado no canal atual para a equipe de moderação."}
+          </p>
+          <form onSubmit={submitReport}>
+            <label>
+              Motivo
+              <select
+                value={reportReason}
+                onChange={(event) => setReportReason(event.target.value)}
+              >
+                <option>Mensagem ofensiva</option>
+                <option>Informação falsa</option>
+                <option>Spam ou divulgação indevida</option>
+                <option>Conteúdo inadequado</option>
+              </select>
+            </label>
+            <label>
+              Detalhes
+              <textarea
+                required
+                rows={4}
+                value={reportText}
+                onChange={(event) => setReportText(event.target.value)}
+                placeholder="Descreva o problema encontrado na conversa..."
+              />
+            </label>
+            <label className="report-upload-label">
+              <span>Anexar foto</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  setReportAttachment(URL.createObjectURL(file));
+                }}
+              />
+            </label>
+            {reportAttachment && (
+              <div className="report-preview">
+                <Image
+                  src={reportAttachment}
+                  alt="Evidência da denúncia"
+                  width={640}
+                  height={360}
+                  unoptimized
+                  style={{ objectFit: "cover" }}
+                />
+                <button
+                  type="button"
+                  className="remove-report-attachment"
+                  onClick={() => setReportAttachment(null)}
+                >
+                  <X />
+                </button>
+              </div>
+            )}
+            <button type="submit" className="primary full">
+              Enviar denúncia
+            </button>
+          </form>
         </Modal>
       )}
       {newNotice && (

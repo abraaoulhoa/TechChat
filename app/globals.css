@@ -377,6 +377,7 @@ button {
   }
 }
 .side {
+  width: 260px;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -384,14 +385,15 @@ button {
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  padding: 23px 14px;
+  padding: 18px 14px 14px;
   z-index: 30;
 }
 .brand {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 0 10px 22px;
+  padding: 0 10px 18px;
+  min-height: 46px;
   font-size: 20px;
 }
 .brand > i {
@@ -419,8 +421,8 @@ button {
   grid-template-columns: 40px 1fr auto;
   gap: 10px;
   align-items: center;
-  margin: 0 5px 24px;
-  padding: 11px;
+  margin: 0 5px 18px;
+  padding: 11px 12px;
   background: #0b1c2a;
   border: 1px solid #183247;
   border-radius: 12px;
@@ -473,20 +475,26 @@ button {
 
 .profile-page {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 32px 18px;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 32px;
   background:
     radial-gradient(circle at top, rgba(65, 120, 202, 0.25), transparent 30%),
     var(--bg);
 }
+.profile-top {
+  width: min(1122px, calc(100% - 24px));
+  margin: 0 auto;
+  margin-top: 0;
+}
 .profile-shell {
-  width: min(820px, 100%);
+  width: min(820px, calc(100% - 24px));
   background: rgba(10, 20, 31, 0.88);
   border: 1px solid var(--line);
   border-radius: 22px;
   padding: 28px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  margin: 18px auto 0;
 }
 .profile-header {
   display: flex;
@@ -557,23 +565,41 @@ button {
   padding: 10px 14px;
   text-decoration: none;
 }
+.top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  background: rgba(9, 24, 35, 0.9);
+  color: #edf5fb;
+  border-radius: 10px;
+  padding: 9px 14px;
+  text-decoration: none;
+  font-weight: 600;
+}
 
 .edit-page {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 32px 18px;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 32px;
   background:
     radial-gradient(circle at top, rgba(65, 120, 202, 0.25), transparent 30%),
     var(--bg);
 }
 .edit-shell {
-  width: min(760px, 100%);
+  width: min(760px, calc(100% - 24px));
   background: rgba(10, 20, 31, 0.88);
   border: 1px solid var(--line);
   border-radius: 22px;
   padding: 28px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  margin: 18px auto 0;
 }
 .edit-header {
   display: flex;
@@ -758,14 +784,18 @@ button {
   color: white;
 }
 .nav.danger svg {
-  color: var(--red);
+  color: #45d17a;
 }
 .nav b {
   margin-left: auto;
-  background: #25445e;
+  background: linear-gradient(135deg, #1bbf69, #139b56);
   border-radius: 10px;
   padding: 2px 6px;
   font-size: 10px;
+  color: #ffffff;
+  font-weight: 700;
+  min-width: 18px;
+  text-align: center;
 }
 .admin-panel {
   margin-top: 10px;
@@ -835,6 +865,200 @@ button {
   border-top: 1px solid #183146;
   padding-top: 8px;
 }
+.team-chat-panel {
+  margin-top: 14px;
+  border: 1px solid #183146;
+  border-radius: 12px;
+  background: rgba(11, 29, 42, 0.9);
+  padding: 10px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.team-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.team-chat-title {
+  font-size: 11px;
+  color: #c3d6e4;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.online-badge {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 7px;
+  background: rgba(50, 207, 117, 0.18);
+  border: 1px solid rgba(50, 207, 117, 0.4);
+  color: #9af0be;
+  font-size: 10px;
+  font-weight: 700;
+}
+.team-search {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #21415b;
+  background: #0a1925;
+  color: #7f9bb0;
+  border-radius: 8px;
+  padding: 7px 8px;
+  margin-bottom: 9px;
+}
+.team-search svg {
+  width: 13px;
+}
+.team-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #edf5fb;
+  font-size: 12px;
+  outline: 0;
+}
+.team-chat-list {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+}
+.team-chat-item {
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 9px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(16, 38, 58, 0.75);
+  color: #dfeaf6;
+  text-align: left;
+  margin: 0;
+}
+.team-chat-item.active {
+  border-color: rgba(109, 170, 255, 0.7);
+  background: rgba(23, 73, 126, 0.9);
+}
+.team-chat-item:hover {
+  border-color: #2d4b65;
+  background: rgba(22, 52, 76, 0.95);
+}
+.team-chat-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.team-chat-copy strong {
+  font-size: 11px;
+  color: #edf5fb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.team-chat-copy small {
+  font-size: 9px;
+  color: #7f9bb0;
+}
+.presence {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #32cf75;
+  box-shadow: 0 0 0 2px rgba(50, 207, 117, 0.18);
+}
+.team-empty {
+  padding: 8px 4px;
+  font-size: 11px;
+  color: #7b90a2;
+}
+.direct-chat {
+  margin-top: 12px;
+  border-top: 1px solid #183146;
+  padding-top: 10px;
+}
+.direct-chat-header {
+  font-size: 11px;
+  color: #c9dced;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.direct-chat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 170px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+.direct-message {
+  max-width: 82%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+.direct-message.me {
+  align-self: flex-end;
+  background: rgba(52, 123, 255, 0.2);
+  border: 1px solid rgba(110, 160, 255, 0.42);
+}
+.direct-message.them {
+  align-self: flex-start;
+  background: rgba(16, 38, 58, 0.8);
+  border: 1px solid rgba(76, 112, 144, 0.7);
+}
+.direct-message p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.4;
+}
+.direct-message small {
+  color: #7f9bb0;
+  font-size: 9px;
+}
+.direct-chat-input {
+  margin-top: 10px;
+  display: flex;
+  gap: 7px;
+}
+.direct-chat-input input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #21415b;
+  background: #0a1925;
+  border-radius: 8px;
+  color: #edf5fb;
+  padding: 8px 10px;
+  font-size: 12px;
+  outline: 0;
+}
+.direct-chat-input button {
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3187ff, #155dce);
+  color: white;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
 .person {
   display: grid;
   grid-template-columns: 27px 1fr auto;
@@ -890,13 +1114,24 @@ button {
   display: flex;
   align-items: center;
   gap: 13px;
-  padding: 11px 22px;
+  padding: 11px 18px 11px 22px;
   background: #07121dde;
   backdrop-filter: blur(14px);
   z-index: 10;
 }
+.top > .section-icon,
+.top > .heading,
+.top > .search,
+.top > .icon,
+.top > .help,
+.top > .report-btn {
+  align-self: center;
+}
 .heading {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .section-icon {
   width: 40px;
@@ -934,9 +1169,11 @@ button {
   gap: 8px;
   padding: 0 10px;
   color: #70899e;
+  flex: 0 1 auto;
 }
 .search svg {
   width: 17px;
+  flex: none;
 }
 .search input {
   flex: 1;
@@ -949,6 +1186,7 @@ button {
 }
 .search button {
   display: grid;
+  place-items: center;
   border: 0;
   background: transparent;
 }
@@ -960,6 +1198,8 @@ button {
   border-radius: 9px;
   background: #0b1b28;
   display: grid;
+  place-items: center;
+  flex: 0 0 auto;
 }
 .icon {
   width: 39px;
@@ -968,22 +1208,39 @@ button {
   stroke-width: 1.6;
 }
 .bell i {
-  position: absolute;
-  right: 7px;
-  top: 7px;
-  width: 6px;
-  height: 6px;
-  background: var(--red);
-  border-radius: 50%;
+  display: none;
 }
 .help {
-  display: flex;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 7px;
   padding: 0 11px;
 }
+.back-btn {
+  border-color: rgba(122, 164, 255, 0.5);
+  background: rgba(20, 41, 62, 0.9);
+  color: #edf5fb;
+}
+.report-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(255, 155, 85, 0.6);
+  background: rgba(122, 73, 18, 0.18);
+  color: #ffd5a0;
+  border-radius: 9px;
+  padding: 0 11px;
+  height: 39px;
+  font-size: 12px;
+  flex: 0 0 auto;
+}
 .help svg,
 .icon svg,
-.menu svg {
+.menu svg,
+.report-btn svg,
+.report-action svg {
   width: 18px;
 }
 .menu {
@@ -1085,7 +1342,23 @@ button {
   color: #6b8498;
   opacity: 0;
 }
-.message:hover .meta > button {
+.message-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.report-action {
+  border: 0;
+  background: transparent;
+  color: #ffbd73;
+  opacity: 0.9;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+.message:hover .meta > button,
+.message:hover .report-action {
   opacity: 1;
 }
 .meta svg {
@@ -1216,7 +1489,7 @@ button {
   grid-row: 1 / span 2;
   border-left: 1px solid var(--line);
   background: #091722;
-  padding: 30px 20px;
+  padding: 20px 18px 18px;
 }
 .about > span {
   width: 50px;
@@ -1248,6 +1521,13 @@ button {
   align-items: center;
   color: #849bad;
   font-size: 12px;
+}
+.about > .team-chat-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
 }
 .about > div svg {
   width: 17px;
@@ -1564,6 +1844,38 @@ button {
   padding: 10px;
   outline: 0;
 }
+.report-upload-label {
+  gap: 8px;
+}
+.report-upload-label input {
+  padding: 9px;
+}
+.report-preview {
+  position: relative;
+  border: 1px solid #2b4961;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #081620;
+}
+.report-preview img {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+.remove-report-attachment {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: grid;
+  place-items: center;
+}
 .modal textarea {
   resize: vertical;
 }
@@ -1574,10 +1886,12 @@ button {
   .top {
     padding-inline: 16px;
   }
-  .help span {
+  .help span,
+  .report-btn span {
     display: none;
   }
-  .help {
+  .help,
+  .report-btn {
     width: 39px;
     padding: 0;
     justify-content: center;
