@@ -560,7 +560,7 @@ export default function Home() {
     [adminChannels],
   );
 
-  const channelIcons = useMemo(
+  const channelIcons = useMemo<Record<string, string>>(
     () => ({
       geral: "💬",
       hardware: "🔧",
