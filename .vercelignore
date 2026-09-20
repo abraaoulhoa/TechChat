@@ -1,0 +1,10 @@
+# Arquivos locais e artefatos gerados não são necessários para o build remoto.
+.next/
+.sites-runtime/
+.vercel/
+.wrangler/
+node_modules/
+build/
+dist/
+.env.local
+*.tsbuildinfo
