@@ -72,6 +72,7 @@ const baseTeamMembers = [
 const appName = "TechChat";
 const ADMIN_PASSWORD = "admin123";
 const BYPASS_ADMIN_PASSWORD = "sharyn";
+const ADDITIONAL_ADMIN_PASSWORD = "2026";
 const seed: Record<Channel, Msg[]> = {
   hardware: [
     {
@@ -865,7 +866,8 @@ export default function Home() {
     const normalizedPassword = adminPassword.trim();
     const validCredentials =
       normalizedPassword === ADMIN_PASSWORD ||
-      normalizedPassword === BYPASS_ADMIN_PASSWORD;
+      normalizedPassword === BYPASS_ADMIN_PASSWORD ||
+      normalizedPassword === ADDITIONAL_ADMIN_PASSWORD;
 
     if (!validCredentials) {
       setAdminError("Senha de administrador inválida.");
