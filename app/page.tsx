@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import PartsControl from "./parts/PartsControl";
 import {
   AlertTriangle,
   Bell,
@@ -15,6 +16,7 @@ import {
   MessageSquare,
   MoreHorizontal,
   Paperclip,
+  Package,
   Plus,
   Search,
   Send,
@@ -29,7 +31,7 @@ import {
   Sun,
 } from "lucide-react";
 
-type View = "board" | "notices" | "guide";
+type View = "board" | "notices" | "guide" | "parts";
 type Channel =
   | "geral"
   | "hardware"
@@ -407,6 +409,7 @@ export default function Home() {
     body: "",
   });
   const file = useRef<HTMLInputElement>(null);
+  const guideFrame = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -468,6 +471,42 @@ export default function Home() {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !entryChecked ||
+      !entrySession ||
+      new URLSearchParams(window.location.search).get("view") !== "parts"
+    ) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setView("parts");
+      setQuery("");
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [entryChecked, entrySession]);
+
+  useEffect(() => {
+    function openParts(event: MessageEvent) {
+      if (
+        !guideFrame.current ||
+        event.origin !== window.location.origin ||
+        event.source !== guideFrame.current.contentWindow ||
+        event.data?.type !== "techchat:open-parts"
+      ) {
+        return;
+      }
+
+      setView("parts");
+      setDrawer(false);
+      setQuery("");
+    }
+
+    window.addEventListener("message", openParts);
+    return () => window.removeEventListener("message", openParts);
   }, []);
 
   function toggleTheme() {
@@ -1061,7 +1100,7 @@ export default function Home() {
         {infoItems.map((item) => {
           const isActive =
             (item.id === "notices" && view === "notices") ||
-            (item.id === "guide" && view === "guide");
+            (item.id === "guide" && (view === "guide" || view === "parts"));
 
           return (
             <button
@@ -1246,6 +1285,8 @@ export default function Home() {
               <MessageSquare />
             ) : view === "notices" ? (
               <Megaphone />
+            ) : view === "parts" ? (
+              <Package />
             ) : (
               <BookOpen />
             )}
@@ -1258,14 +1299,18 @@ export default function Home() {
                   : channel
                 : view === "notices"
                   ? "Comunicados oficiais"
-                  : "OPPO"}
+                  : view === "parts"
+                    ? "Controle de peças"
+                    : "OPPO"}
             </h1>
             <p>
               {view === "board"
                 ? channels[channel]
                 : view === "notices"
                   ? "Informações publicadas pela gestão e liderança"
-                  : "Ferramentas e utilidades para OPPO"}
+                  : view === "parts"
+                    ? "Peças, movimentações e acompanhamento da bancada"
+                    : "Ferramentas e utilidades para OPPO"}
             </p>
           </div>
           <label className="search">
@@ -1622,11 +1667,15 @@ export default function Home() {
         {view === "guide" && (
           <div className="guide">
             <iframe
+              ref={guideFrame}
               key={theme}
               title="GUIA DE COMENTÁRIOS OPPO"
               src={"/guia/index.html?theme=" + theme}
             />
           </div>
+        )}
+        {view === "parts" && (
+          <PartsControl query={query} onBack={() => go("guide")} />
         )}
       </section>
       {adminModal && (

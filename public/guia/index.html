@@ -546,7 +546,13 @@ function renderPieceSelection(){
   const partsBtn = document.createElement('button');
   partsBtn.className = 'btn btn-primary';
   partsBtn.textContent = 'Abrir';
-  partsBtn.onclick = () => showToast('Seção de controle de peças em desenvolvimento.');
+  partsBtn.onclick = () => {
+    if(window.parent !== window){
+      window.parent.postMessage({type:'techchat:open-parts'}, window.location.origin);
+    }else{
+      window.location.href = '/?view=parts';
+    }
+  };
   partsWrap.appendChild(partsBtn);
   main.appendChild(partsWrap);
 }
