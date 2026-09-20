@@ -70,9 +70,7 @@ const baseTeamMembers = [
 ];
 
 const appName = "TechChat";
-const ADMIN_EMAIL = "admin@techchat.local";
 const ADMIN_PASSWORD = "admin123";
-const BYPASS_ADMIN_EMAIL = "sharyn";
 const BYPASS_ADMIN_PASSWORD = "sharyn";
 const seed: Record<Channel, Msg[]> = {
   hardware: [
@@ -302,7 +300,7 @@ export default function Home() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminModal, setAdminModal] = useState(false);
-  const [adminForm, setAdminForm] = useState({ email: "", password: "" });
+  const [adminPassword, setAdminPassword] = useState("");
   const [adminError, setAdminError] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("Mensagem ofensiva");
@@ -857,23 +855,20 @@ export default function Home() {
   function openAdminModal() {
     setProfileOpen(false);
     setAdminError("");
-    setAdminForm({ email: "", password: "" });
+    setAdminPassword("");
     setAdminModal(true);
   }
 
   function submitAdmin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const normalizedEmail = adminForm.email.trim().toLowerCase();
-    const normalizedPassword = adminForm.password.trim();
+    const normalizedPassword = adminPassword.trim();
     const validCredentials =
-      (normalizedEmail === ADMIN_EMAIL &&
-        normalizedPassword === ADMIN_PASSWORD) ||
-      (normalizedEmail === BYPASS_ADMIN_EMAIL &&
-        normalizedPassword === BYPASS_ADMIN_PASSWORD);
+      normalizedPassword === ADMIN_PASSWORD ||
+      normalizedPassword === BYPASS_ADMIN_PASSWORD;
 
     if (!validCredentials) {
-      setAdminError("Email ou senha de administrador inválidos.");
+      setAdminError("Senha de administrador inválida.");
       return;
     }
 
@@ -881,7 +876,7 @@ export default function Home() {
     setIsAdmin(true);
     setAdminError("");
     setAdminModal(false);
-    setAdminForm({ email: "", password: "" });
+    setAdminPassword("");
   }
 
   if (!entryChecked) {
@@ -1684,32 +1679,15 @@ export default function Home() {
             <ShieldCheck />
           </span>
           <h2>Modo administrador</h2>
-          <p>Informe as credenciais para acessar as funções de gestão.</p>
+          <p>Informe a senha para acessar as funções de gestão.</p>
           <form onSubmit={submitAdmin}>
-            <label>
-              Email do administrador
-              <input
-                type="email"
-                required
-                value={adminForm.email}
-                onChange={(e) =>
-                  setAdminForm((prev) => ({ ...prev, email: e.target.value }))
-                }
-                placeholder="admin@techchat.local"
-              />
-            </label>
             <label>
               Senha
               <input
                 type="password"
                 required
-                value={adminForm.password}
-                onChange={(e) =>
-                  setAdminForm((prev) => ({
-                    ...prev,
-                    password: e.target.value,
-                  }))
-                }
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
                 placeholder="Digite sua senha"
               />
             </label>
