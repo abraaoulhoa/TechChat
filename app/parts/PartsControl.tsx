@@ -75,18 +75,21 @@ function normalizeSearch(value: string) {
 }
 
 async function readResponse(response: Response) {
-  const payload = await response.json().catch(() => null);
+  const payload: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     if (response.status === 503) {
       throw new Error(
         "O banco compartilhado está indisponível. Tente novamente em instantes; se o problema continuar, peça ao administrador para verificar a conexão.",
       );
     }
-    throw new Error(
-      typeof payload?.error === "string"
+    const message =
+      typeof payload === "object" &&
+      payload !== null &&
+      "error" in payload &&
+      typeof payload.error === "string"
         ? payload.error
-        : "Não foi possível concluir a operação. Tente novamente.",
-    );
+        : "Não foi possível concluir a operação. Tente novamente.";
+    throw new Error(message);
   }
   if (!payload) throw new Error("O servidor retornou uma resposta inválida. Tente novamente.");
   return payload;
